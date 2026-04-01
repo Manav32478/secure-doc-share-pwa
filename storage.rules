@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Documents folder - only authenticated users
+    match /documents/{userId}/{fileName} {
+      // Owner can read/write/delete their files
+      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      
+      // File size limit: 50MB
+      allow write: if request.resource.size < 50 * 1024 * 1024;
+    }
+    
+    // Public shared files (if needed)
+    match /shared/{linkId}/{fileName} {
+      allow read: if true; // Public read for shared links
+      allow write: if request.auth != null;
+    }
+  }
+}

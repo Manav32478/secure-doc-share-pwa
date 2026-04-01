@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <domain-config>
+        <domain includeSubdomains="true">securevault.example.com</domain>
+        <domain includeSubdomains="true">doc-share-55636.firebaseio.com</domain>
+    </domain-config>
+</data-extraction-rules>

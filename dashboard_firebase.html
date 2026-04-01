@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Secure Doc Share</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f7fafc;
+      color: #2d3748;
+      line-height: 1.6;
+    }
+
+    .navbar {
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .navbar-user {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-email {
+      font-size: 14px;
+      color: #718096;
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .user-email {
+        display: block;
+      }
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-logout {
+      background: #fc8181;
+      color: white;
+    }
+
+    .btn-logout:hover {
+      background: #f56565;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #2d3748;
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e0;
+    }
+
+    .btn-danger {
+      background: #fc8181;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #f56565;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .upload-section {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #2d3748;
+    }
+
+    .upload-area {
+      border: 2px dashed #cbd5e0;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      background: #f7fafc;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .upload-area:hover {
+      border-color: #667eea;
+      background: #edf2f7;
+    }
+
+    .upload-area.dragover {
+      border-color: #667eea;
+      background: #e6fffa;
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .upload-text {
+      font-size: 16px;
+      color: #4a5568;
+      margin-bottom: 8px;
+    }
+
+    .upload-subtext {
+      font-size: 13px;
+      color: #a0aec0;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .file-selected {
+      background: #e6fffa;
+      border: 2px solid #38b2ac;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .file-icon {
+      font-size: 32px;
+    }
+
+    .file-details h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .file-details p {
+      font-size: 12px;
+      color: #718096;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .progress-bar.active {
+      display: block;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .documents-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .document-card {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .document-card:hover {
+      border-color: #cbd5e0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .document-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .document-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .document-title h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
+      word-break: break-word;
+    }
+
+    .document-meta {
+      font-size: 12px;
+      color: #a0aec0;
+      margin-bottom: 12px;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #667eea;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .download-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+
+    .share-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .share-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 12px;
+    }
+
+    .share-inputs {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .link-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .generated-link {
+      background: #edf2f7;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      padding: 12px;
+      margin: 10px 0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .link-url {
+      flex: 1;
+      font-size: 13px;
+      color: #2d3748;
+      word-break: break-all;
+      font-family: monospace;
+    }
+
+    .copy-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover {
+      background: #5568d3;
+    }
+
+    .link-expire-info {
+      font-size: 12px;
+      color: #718096;
+      margin-top: 8px;
+    }
+
+    .share-inputs input {
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 13px;
+      width: 100%;
+    }
+
+    .share-inputs input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .share-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-badge.active {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .status-badge.expired {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+
+    .status-badge.pending {
+      background: #feebc8;
+      color: #7c2d12;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #a0aec0;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+    }
+
+    .notification {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      max-width: 400px;
+      animation: slideIn 0.3s ease;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .notification.success {
+      background: #c6f6d5;
+      color: #22543d;
+      border-left: 4px solid #38a169;
+    }
+
+    .notification.error {
+      background: #fed7d7;
+      color: #742a2a;
+      border-left: 4px solid #c53030;
+    }
+
+    .notification.info {
+      background: #bee3f8;
+      color: #2c5282;
+      border-left: 4px solid #3182ce;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    .notification.hide {
+      animation: slideOut 0.3s ease;
+    }
+
+    .setup-banner {
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+      border: 2px solid #ffc107;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+    }
+
+    .setup-banner-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    .setup-banner-content {
+      flex: 1;
+    }
+
+    .setup-banner-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #856404;
+      margin-bottom: 6px;
+    }
+
+    .setup-banner-text {
+      font-size: 14px;
+      color: #856404;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .setup-banner-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #856404;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .setup-banner-link:hover {
+      background: #6d5003;
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 16px;
+      }
+
+      .upload-section,
+      .section {
+        padding: 20px;
+      }
+
+      .share-buttons {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span>🔐</span>
+      <span>Secure Doc Share</span>
+    </div>
+    <div class="navbar-user">
+      <span class="user-email" id="userEmail"></span>
+      <button class="btn btn-logout" id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Setup Warning Banner -->
+    <div class="setup-banner" id="setupBanner" style="display: none;">
+      <div class="setup-banner-icon">⚠️</div>
+      <div class="setup-banner-content">
+        <div class="setup-banner-title">Firebase Setup Required</div>
+        <div class="setup-banner-text">
+          If documents aren't displaying, you need to configure Firebase Console security rules. This takes 2 minutes.
+        </div>
+        <a href="troubleshoot.html" class="setup-banner-link" target="_blank">
+          View Setup Guide →
+        </a>
+      </div>
+    </div>
+
+    <div class="upload-section">
+      <h2 class="section-title">Upload Document</h2>
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📁</div>
+        <p class="upload-text">Click to browse or drag and drop your file here</p>
+        <p class="upload-subtext">Maximum file size: 50MB</p>
+      </div>
+      <input type="file" id="fileInput" accept="*/*">
+      <div id="fileSelected" style="display: none;"></div>
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Your Documents</h2>
+      <div class="documents-grid" id="docsList">
+        <div class="empty-state">
+          <div class="empty-state-icon">📄</div>
+          <p>No documents uploaded yet</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Documents Shared With You</h2>
+      <div class="documents-grid" id="sharedDocs">
+        <div class="empty-state">
+          <div class="empty-state-icon">👥</div>
+          <p>No shared documents</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db, storage } from "./js/firebase.js";
+    import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      collection,
+      addDoc,
+      getDocs,
+      query,
+      where,
+      serverTimestamp,
+      doc,
+      updateDoc,
+      getDoc,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      ref,
+      uploadBytesResumable,
+      getDownloadURL,
+      getBytes
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    let currentUser;
+    let selectedFile = null;
+
+    const uploadArea = document.getElementById("uploadArea");
+    const fileInput = document.getElementById("fileInput");
+    const fileSelected = document.getElementById("fileSelected");
+    const progressBar = document.getElementById("progressBar");
+    const progressBarFill = document.getElementById("progressBarFill");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const userEmail = document.getElementById("userEmail");
+    const docsList = document.getElementById("docsList");
+    const sharedDocs = document.getElementById("sharedDocs");
+    const setupBanner = document.getElementById("setupBanner");
+
+    let hasLoadedSuccessfully = false;
+
+    function showNotification(message, type = 'success') {
+      const notif = document.createElement("div");
+      notif.className = `notification ${type}`;
+      notif.textContent = message;
+      document.body.appendChild(notif);
+
+      setTimeout(() => {
+        notif.classList.add("hide");
+        setTimeout(() => notif.remove(), 300);
+      }, 4000);
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      } else {
+        currentUser = user;
+        userEmail.textContent = user.email;
+        loadDocuments();
+        loadSharedDocuments();
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        window.location.href = "index.html";
+      } catch (error) {
+        showNotification("Logout failed: " + error.message, "error");
+      }
+    });
+
+    uploadArea.addEventListener("click", () => fileInput.click());
+
+    uploadArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadArea.classList.add("dragover");
+    });
+
+    uploadArea.addEventListener("dragleave", () => {
+      uploadArea.classList.remove("dragover");
+    });
+
+    uploadArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      if (file) handleFileSelect(file);
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) handleFileSelect(file);
+    });
+
+    function handleFileSelect(file) {
+      if (file.size > 52428800) {
+        showNotification("File size exceeds 50MB limit", "error");
+        return;
+      }
+
+      selectedFile = file;
+      fileSelected.style.display = "block";
+      fileSelected.innerHTML = `
+        <div class="file-selected">
+          <div class="file-info">
+            <div class="file-icon">📄</div>
+            <div class="file-details">
+              <h4>${file.name}</h4>
+              <p>${formatFileSize(file.size)}</p>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="window.uploadFile()">
+            Upload
+          </button>
+        </div>
+      `;
+    }
+
+    window.uploadFile = async function() {
+      if (!selectedFile) return;
+
+      const storageRef = ref(storage, `documents/${currentUser.uid}/${Date.now()}_${selectedFile.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+      progressBar.classList.add("active");
+      showNotification("Uploading document...", "info");
+
+      uploadTask.on("state_changed",
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          progressBarFill.style.width = progress + "%";
+        },
+        (error) => {
+          progressBar.classList.remove("active");
+          showNotification("Upload failed: " + error.message, "error");
+          console.error("Upload error:", error);
+        },
+        async () => {
+          try {
+            const docData = {
+              fileName: selectedFile.name,
+              fileSize: selectedFile.size,
+              fileType: selectedFile.type || "application/octet-stream",
+              storagePath: storageRef.fullPath,
+              ownerId: currentUser.uid,
+              ownerEmail: currentUser.email,
+              createdAt: serverTimestamp(),
+              sharedWith: {}
+            };
+
+            console.log("Saving document to Firestore:", docData);
+            
+            const docRef = await addDoc(collection(db, "documents"), docData);
+            
+            console.log("Document saved with ID:", docRef.id);
+
+            progressBar.classList.remove("active");
+            progressBarFill.style.width = "0%";
+            fileSelected.style.display = "none";
+            fileInput.value = "";
+            selectedFile = null;
+
+            showNotification("✓ Document uploaded successfully!", "success");
+            
+            // Reload documents after a short delay to allow serverTimestamp to sync
+            setTimeout(() => {
+              loadDocuments();
+            }, 500);
+          } catch (error) {
+            progressBar.classList.remove("active");
+            showNotification("Failed to save document: " + error.message, "error");
+            console.error("Firestore error:", error);
+            console.error("Error code:", error.code);
+            console.error("Error details:", error);
+          }
+        }
+      );
+    };
+
+    async function loadDocuments() {
+      try {
+        console.log("Loading documents for user:", currentUser.uid);
+        
+        const q = query(
+          collection(db, "documents"),
+          where("ownerId", "==", currentUser.uid)
+        );
+
+        const snapshot = await getDocs(q);
+        
+        console.log("Documents found:", snapshot.size);
+
+        // Successfully loaded documents - hide setup banner
+        hasLoadedSuccessfully = true;
+        if (setupBanner) {
+          setupBanner.style.display = "none";
+        }
+
+        if (snapshot.empty) {
+          docsList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📄</div>
+              <p>No documents uploaded yet</p>
+              <p style="font-size: 13px; color: #a0aec0; margin-top: 12px;">
+                Upload a document above to get started
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        docsList.innerHTML = "";
+
+        snapshot.forEach((documentSnap) => {
+          const data = documentSnap.data();
+          const docId = documentSnap.id;
+          
+          console.log("Document data:", data);
+
+          const card = document.createElement("div");
+          card.className = "document-card";
+
+          const createdDate = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : "Just now";
+
+          card.innerHTML = `
+            <div class="document-header">
+              <div class="document-title">
+                <span style="font-size: 24px;">📄</span>
+                <h3>${data.fileName}</h3>
+              </div>
+            </div>
+            <div class="document-meta">
+              ${formatFileSize(data.fileSize)} • Uploaded ${createdDate}
+            </div>
+            <button class="download-btn" data-docid="${docId}" data-storage="${data.storagePath}" data-filename="${data.fileName}">
+              ⬇️ Download
+            </button>
+            <div class="share-section">
+              <div class="share-section-title">📧 Email Sharing</div>
+              <div class="share-inputs">
+                <input type="email" placeholder="Recipient email" class="share-email-${docId}">
+                <input type="datetime-local" class="share-expiry-${docId}">
+              </div>
+              <div class="share-buttons">
+                <button class="btn btn-primary btn-sm" data-share="${docId}">Share</button>
+                <button class="btn btn-danger btn-sm" data-revoke="${docId}">Revoke</button>
+              </div>
+            </div>
+            <div class="link-section">
+              <div class="share-section-title">🔗 Generate Shareable Link</div>
+              <div class="share-inputs">
+                <input type="number" placeholder="Hours until expiration (e.g., 24)" class="link-hours-${docId}" min="1" max="720" value="24">
+              </div>
+              <button class="btn btn-secondary btn-sm" data-generate-link="${docId}">Generate Link</button>
+              <div id="link-display-${docId}"></div>
+            </div>
+          `;
+
+          docsList.appendChild(card);
+        });
+
+        // Add event listeners
+        document.querySelectorAll(".download-btn").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const storagePath = e.currentTarget.dataset.storage;
+            const fileName = e.currentTarget.dataset.filename;
+            await downloadFile(storagePath, fileName);
+          });
+        });
+
+        document.querySelectorAll("[data-share]").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const docId = e.currentTarget.dataset.share;
+            await shareDocument(docId);
+          });
+        });
+
+        document.querySelectorAll("[data-revoke]").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const docId = e.currentTarget.dataset.revoke;
+            await revokeAccess(docId);
+          });
+        });
+
+        document.querySelectorAll("[data-generate-link]").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const docId = e.currentTarget.dataset.generateLink;
+            await generateShareableLink(docId);
+          });
+        });
+
+      } catch (error) {
+        console.error("Error loading documents:", error);
+        console.error("Error code:", error.code);
+        console.error("Full error:", error);
+        
+        // Show setup banner for permission errors
+        if (setupBanner && !hasLoadedSuccessfully) {
+          setupBanner.style.display = "flex";
+        }
+        
+        if (error.code === 'permission-denied' || error.message.includes('permission')) {
+          docsList.innerHTML = `
+            <div class="empty-state" style="max-width: 600px; margin: 0 auto;">
+              <div class="empty-state-icon" style="font-size: 48px;">🔒</div>
+              <h3 style="color: #e53e3e; margin: 16px 0;">Permission Denied</h3>
+              <p style="color: #718096; margin-bottom: 16px;">Firebase security rules are blocking document access.</p>
+              <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 16px; text-align: left;">
+                <strong style="color: #856404;">Quick Fix:</strong>
+                <ol style="color: #856404; margin: 8px 0; padding-left: 20px;">
+                  <li>Open <a href="https://console.firebase.google.com/project/doc-share-55636/firestore/rules" target="_blank" style="color: #667eea;">Firebase Console</a></li>
+                  <li>Go to Firestore Database → Rules tab</li>
+                  <li>Replace rules with: <code style="background: #f7fafc; padding: 2px 6px; border-radius: 4px;">match /{document=**} { allow read, write: if request.auth != null; }</code></li>
+                  <li>Click Publish, then refresh this page</li>
+                </ol>
+                <p style="margin-top: 12px; font-size: 14px;"><strong>
+                  <a href="troubleshoot.html" target="_blank" style="color: #667eea;">View Complete Setup Guide →</a>
+                </strong></p>
+              </div>
+            </div>
+          `;
+        } else {
+          showNotification("Failed to load documents: " + error.message, "error");
+        }
+      }
+    }
+
+    async function downloadFile(storagePath, fileName) {
+      try {
+        showNotification("Downloading...", "info");
+        const fileRef = ref(storage, storagePath);
+        const bytes = await getBytes(fileRef);
+        const blob = new Blob([bytes]);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        showNotification("✓ Download complete!", "success");
+      } catch (error) {
+        showNotification("Download failed: " + error.message, "error");
+        console.error("Download error:", error);
+      }
+    }
+
+    async function shareDocument(docId) {
+      const email = document.querySelector(`.share-email-${docId}`).value.trim();
+      const expiryValue = document.querySelector(`.share-expiry-${docId}`).value;
+
+      if (!email || !expiryValue) {
+        showNotification("Please enter email and expiry date", "error");
+        return;
+      }
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", email));
+        if (!userDoc.exists()) {
+          showNotification("User not registered in the system", "error");
+          return;
+        }
+
+        const expiryDate = new Date(expiryValue);
+        await updateDoc(doc(db, "documents", docId), {
+          [`sharedWith.${userDoc.data().uid}`]: {
+            email: email,
+            consent: false,
+            expiresAt: expiryDate
+          }
+        });
+
+        document.querySelector(`.share-email-${docId}`).value = "";
+        document.querySelector(`.share-expiry-${docId}`).value = "";
+
+        showNotification("✓ Document shared successfully!", "success");
+      } catch (error) {
+        showNotification("Share failed: " + error.message, "error");
+        console.error("Share error:", error);
+      }
+    }
+
+    async function revokeAccess(docId) {
+      const email = document.querySelector(`.share-email-${docId}`).value.trim();
+
+      if (!email) {
+        showNotification("Enter email to revoke access", "error");
+        return;
+      }
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", email));
+        if (!userDoc.exists()) {
+          showNotification("User not found", "error");
+          return;
+        }
+
+        await updateDoc(doc(db, "documents", docId), {
+          [`sharedWith.${userDoc.data().uid}`]: null
+        });
+
+        document.querySelector(`.share-email-${docId}`).value = "";
+        showNotification("✓ Access revoked successfully", "success");
+      } catch (error) {
+        showNotification("Revoke failed: " + error.message, "error");
+        console.error("Revoke error:", error);
+      }
+    }
+
+    async function generateShareableLink(docId) {
+      const hoursInput = document.querySelector(`.link-hours-${docId}`);
+      const hours = parseInt(hoursInput.value) || 24;
+
+      if (hours < 1 || hours > 720) {
+        showNotification("Hours must be between 1 and 720 (30 days)", "error");
+        return;
+      }
+
+      try {
+        showNotification("Generating link...", "info");
+
+        // Get document data
+        const docSnap = await getDoc(doc(db, "documents", docId));
+        if (!docSnap.exists()) {
+          showNotification("Document not found", "error");
+          return;
+        }
+
+        const docData = docSnap.data();
+        
+        // Generate unique link ID
+        const linkId = `${docId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Calculate expiration time
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + hours);
+
+        // Create shareable link document
+        await addDoc(collection(db, "sharedLinks"), {
+          linkId: linkId,
+          documentId: docId,
+          ownerId: currentUser.uid,
+          storagePath: docData.storagePath,
+          fileName: docData.fileName,
+          fileSize: docData.fileSize,
+          expiresAt: expiresAt,
+          createdAt: serverTimestamp(),
+          accessCount: 0
+        });
+
+        // Generate the shareable URL
+        const shareableUrl = `${window.location.origin}/shared.html?link=${linkId}`;
+        
+        // Display the link
+        const linkDisplay = document.getElementById(`link-display-${docId}`);
+        linkDisplay.innerHTML = `
+          <div class="generated-link">
+            <div class="link-url" id="link-url-${docId}">${shareableUrl}</div>
+            <button class="copy-btn" onclick="copyToClipboard('${linkId}', '${shareableUrl}')">📋 Copy</button>
+          </div>
+          <div class="link-expire-info">
+            ⏰ Link expires on: ${expiresAt.toLocaleString()}
+          </div>
+        `;
+
+        showNotification("✓ Shareable link generated!", "success");
+      } catch (error) {
+        showNotification("Failed to generate link: " + error.message, "error");
+        console.error("Generate link error:", error);
+      }
+    }
+
+    window.copyToClipboard = function(linkId, url) {
+      navigator.clipboard.writeText(url).then(() => {
+        showNotification("✓ Link copied to clipboard!", "success");
+      }).catch(err => {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification("✓ Link copied to clipboard!", "success");
+      });
+    };
+
+    async function loadSharedDocuments() {
+      try {
+        const snapshot = await getDocs(collection(db, "documents"));
+
+        const sharedDocsDiv = document.getElementById("sharedDocs");
+        const sharedDocsList = [];
+
+        snapshot.forEach((documentSnap) => {
+          const data = documentSnap.data();
+          if (data.sharedWith && data.sharedWith[currentUser.uid]) {
+            sharedDocsList.push({ id: documentSnap.id, data });
+          }
+        });
+
+        if (sharedDocsList.length === 0) {
+          sharedDocsDiv.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">👥</div>
+              <p>No shared documents</p>
+            </div>
+          `;
+          return;
+        }
+
+        sharedDocsDiv.innerHTML = "";
+
+        sharedDocsList.forEach(({ id, data }) => {
+          const shareInfo = data.sharedWith[currentUser.uid];
+          const card = document.createElement("div");
+          card.className = "document-card";
+
+          if (!shareInfo.consent) {
+            card.innerHTML = `
+              <div class="document-header">
+                <div class="document-title">
+                  <span style="font-size: 24px;">📄</span>
+                  <h3>${data.fileName}</h3>
+                </div>
+                <span class="status-badge pending">Pending Consent</span>
+              </div>
+              <div class="document-meta">Shared by ${data.ownerEmail || "Unknown"}</div>
+              <button class="btn btn-primary" data-consent="${id}">Give Consent</button>
+            `;
+          } else {
+            const now = new Date();
+            const expiry = shareInfo.expiresAt.toDate ? shareInfo.expiresAt.toDate() : new Date(shareInfo.expiresAt);
+            const isExpired = now > expiry;
+
+            if (isExpired) {
+              card.innerHTML = `
+                <div class="document-header">
+                  <div class="document-title">
+                    <span style="font-size: 24px;">📄</span>
+                    <h3>${data.fileName}</h3>
+                  </div>
+                  <span class="status-badge expired">Expired</span>
+                </div>
+                <div class="document-meta">Access expired on ${expiry.toLocaleDateString()}</div>
+              `;
+            } else {
+              const timeLeft = Math.ceil((expiry - now) / (1000 * 60 * 60));
+              card.innerHTML = `
+                <div class="document-header">
+                  <div class="document-title">
+                    <span style="font-size: 24px;">📄</span>
+                    <h3>${data.fileName}</h3>
+                  </div>
+                  <span class="status-badge active">Active</span>
+                </div>
+                <div class="document-meta">
+                  Shared by ${data.ownerEmail || "Unknown"} • Expires in ${timeLeft}h
+                </div>
+                <button class="download-btn" data-storage="${data.storagePath}" data-filename="${data.fileName}">
+                  ⬇️ Download
+                </button>
+              `;
+            }
+          }
+
+          sharedDocsDiv.appendChild(card);
+        });
+
+        // Add event listeners
+        document.querySelectorAll("[data-consent]").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const docId = e.currentTarget.dataset.consent;
+            try {
+              await updateDoc(doc(db, "documents", docId), {
+                [`sharedWith.${currentUser.uid}.consent`]: true
+              });
+              showNotification("✓ Consent given! You can now access the document.", "success");
+              loadSharedDocuments();
+            } catch (error) {
+              showNotification("Failed to give consent: " + error.message, "error");
+            }
+          });
+        });
+
+        sharedDocsDiv.querySelectorAll(".download-btn").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const storagePath = e.currentTarget.dataset.storage;
+            const fileName = e.currentTarget.dataset.filename;
+            await downloadFile(storagePath, fileName);
+          });
+        });
+
+      } catch (error) {
+        console.error("Error loading shared documents:", error);
+        showNotification("Failed to load shared documents: " + error.message, "error");
+      }
+    }
+  </script>
+</body>
+</html>

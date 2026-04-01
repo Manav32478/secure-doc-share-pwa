@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      padding: 40px;
+      color: white;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    h3 {
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 20px;
+      border-left: 4px solid #00c6ff;
+      padding-left: 10px;
+    }
+
+    hr {
+      border: none;
+      height: 1px;
+      background: rgba(255,255,255,0.2);
+      margin: 25px 0;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 5px;
+      margin-right: 5px;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 198, 255, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    #logoutBtn {
+      background: #ff4d4d;
+      color: white;
+      float: right;
+    }
+
+    #uploadBtn {
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      color: white;
+      margin-top: 10px;
+    }
+
+    input {
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 198, 255, 0.3);
+      margin-top: 5px;
+      margin-right: 5px;
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 13px;
+    }
+
+    input::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #00c6ff;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.08);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(0, 198, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(0, 198, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    a {
+      color: #00c6ff;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+
+    a:hover {
+      color: #00e6ff;
+      text-shadow: 0 0 8px rgba(0, 198, 255, 0.5);
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 20px; }
+      #logoutBtn { float: none; margin-bottom: 15px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Secure Document Dashboard</h2>
+  <button id="logoutBtn">Logout</button>
+
+  <hr>
+
+  <h3>📤 Upload Document</h3>
+  <div class="card" style="margin-bottom: 20px;">
+    <input type="file" id="fileInput" style="display: block; margin-bottom: 10px;">
+    <small style="opacity: 0.8;">Max file size: 50MB</small>
+    <br>
+    <button id="uploadBtn">Upload Document</button>
+  </div>
+
+  <hr>
+
+  <h3>📁 Your Documents</h3>
+  <div id="docsList">
+    <p style="opacity: 0.6; text-align: center; padding: 20px;">No documents yet</p>
+  </div>
+
+  <hr>
+
+  <h3>👥 Documents Shared With Me</h3>
+  <div id="sharedDocs">
+    <p style="opacity: 0.6; text-align: center; padding: 20px;">No shared documents yet</p>
+  </div>
+
+  <script type="module">
+    import { auth, db, storage } from "./js/firebase.js";
+    import { signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      collection,
+      addDoc,
+      getDocs,
+      query,
+      where,
+      serverTimestamp,
+      doc,
+      updateDoc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { ref, uploadBytes, getBytes } 
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const fileInput = document.getElementById("fileInput");
+    const docsList = document.getElementById("docsList");
+    const sharedDocs = document.getElementById("sharedDocs");
+
+    let currentUser;
+
+    // 🔐 AUTH CHECK
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      } else {
+        currentUser = user;
+        loadDocuments();
+        loadSharedDocuments();
+      }
+    });
+
+    // 🚪 LOGOUT
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "index.html";
+    });
+
+    // 📤 UPLOAD
+    uploadBtn.addEventListener("click", async () => {
+      const file = fileInput.files[0];
+      if (!file) return alert("Select a file first");
+
+      if (file.size > 52428800)
+        return alert("File must be under 50MB");
+
+      try {
+        // Upload file to Firebase Storage
+        const storageRef = ref(storage, `documents/${currentUser.uid}/${Date.now()}_${file.name}`);
+        await uploadBytes(storageRef, file);
+
+        // Store metadata in Firestore (no file data)
+        await addDoc(collection(db, "documents"), {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          storagePath: storageRef.fullPath,
+          ownerId: currentUser.uid,
+          createdAt: serverTimestamp(),
+          sharedWith: {}
+        });
+
+        alert("Upload Successful");
+        fileInput.value = "";
+        loadDocuments();
+      } catch (error) {
+        alert("Upload failed: " + error.message);
+      }
+    });
+
+    // 📂 LOAD OWN DOCUMENTS
+    async function loadDocuments() {
+      docsList.innerHTML = "";
+
+      const q = query(
+        collection(db, "documents"),
+        where("ownerId", "==", currentUser.uid)
+      );
+
+      const snapshot = await getDocs(q);
+
+      snapshot.forEach(documentSnap => {
+        const data = documentSnap.data();
+        const docId = documentSnap.id;
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const link = document.createElement("a");
+        link.href = "#";
+        link.innerText = "📥 " + data.fileName;
+        link.style.display = "inline-block";
+        link.style.padding = "8px 12px";
+        link.style.background = "rgba(0, 198, 255, 0.1)";
+        link.style.borderRadius = "6px";
+        link.style.marginBottom = "10px";
+        link.style.border = "1px solid rgba(0, 198, 255, 0.3)";
+        link.onclick = async (e) => {
+          e.preventDefault();
+          try {
+            const fileRef = ref(storage, data.storagePath);
+            const bytes = await getBytes(fileRef);
+            const blob = new Blob([bytes]);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = data.fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+          } catch (error) {
+            alert("Download failed: " + error.message);
+          }
+        };
+
+        card.appendChild(link);
+        card.appendChild(document.createElement("br"));
+
+        // Share Section
+        const shareSection = document.createElement("div");
+        shareSection.style.marginTop = "12px";
+        shareSection.style.paddingTop = "12px";
+        shareSection.style.borderTop = "1px solid rgba(0, 198, 255, 0.2)";
+
+        const shareLabel = document.createElement("small");
+        shareLabel.innerText = "🔗 Share with others:";
+        shareLabel.style.display = "block";
+        shareLabel.style.opacity = "0.7";
+        shareLabel.style.marginBottom = "8px";
+        shareSection.appendChild(shareLabel);
+
+        const emailInput = document.createElement("input");
+        emailInput.placeholder = "recipient@example.com";
+        emailInput.style.width = "100%";
+        emailInput.style.marginBottom = "8px";
+
+        const expiryInput = document.createElement("input");
+        expiryInput.type = "datetime-local";
+        expiryInput.style.width = "100%";
+        expiryInput.style.marginBottom = "8px";
+
+        const shareBtn = document.createElement("button");
+        shareBtn.innerText = "✓ Share";
+        shareBtn.style.background = "linear-gradient(to right, #00c6ff, #0072ff)";
+        shareBtn.style.color = "white";
+
+        shareBtn.onclick = async () => {
+          const email = emailInput.value;
+          const expiryDate = new Date(expiryInput.value);
+
+          if (!email || !expiryInput.value)
+            return alert("Fill email and expiry time");
+
+          const userDoc = await getDoc(doc(db, "users", email));
+          if (!userDoc.exists())
+            return alert("User not registered");
+
+          await updateDoc(doc(db, "documents", docId), {
+            [`sharedWith.${userDoc.data().uid}`]: {
+              email: email,
+              consent: false,
+              expiresAt: expiryDate
+            }
+          });
+
+          alert("Document Shared! (Recipient needs to give consent)");
+          emailInput.value = "";
+          expiryInput.value = "";
+        };
+
+        const revokeBtn = document.createElement("button");
+        revokeBtn.innerText = "✕ Revoke Access";
+        revokeBtn.style.background = "#ff4d4d";
+        revokeBtn.style.color = "white";
+
+        revokeBtn.onclick = async () => {
+          const email = emailInput.value;
+          if (!email) return alert("Enter email to revoke access");
+
+          const userDoc = await getDoc(doc(db, "users", email));
+          if (!userDoc.exists()) return alert("User not found");
+
+          await updateDoc(doc(db, "documents", docId), {
+            [`sharedWith.${userDoc.data().uid}`]: null
+          });
+
+          alert("Access Revoked");
+          emailInput.value = "";
+        };
+
+        shareSection.appendChild(emailInput);
+        shareSection.appendChild(expiryInput);
+        shareSection.appendChild(shareBtn);
+        shareSection.appendChild(revokeBtn);
+
+        card.appendChild(shareSection);
+        docsList.appendChild(card);
+    }
+
+    // 📥 LOAD SHARED DOCUMENTS
+    async function loadSharedDocuments() {
+      sharedDocs.innerHTML = "";
+
+      const snapshot = await getDocs(collection(db, "documents"));
+
+      snapshot.forEach(documentSnap => {
+        const data = documentSnap.data();
+
+        if (
+          data.sharedWith &&
+          data.sharedWith[currentUser.uid]
+        ) {
+          const shareInfo = data.sharedWith[currentUser.uid];
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+        if (!shareInfo.consent) {
+            const pendingLabel = document.createElement("small");
+            pendingLabel.innerHTML = "⏳ <b>Awaiting your consent</b>";
+            pendingLabel.style.display = "block";
+            pendingLabel.style.marginBottom = "10px";
+            pendingLabel.style.opacity = "0.8";
+            card.appendChild(pendingLabel);
+
+            const consentBtn = document.createElement("button");
+            consentBtn.innerText = "✓ Give Consent to Access";
+            consentBtn.style.background = "linear-gradient(to right, #0072ff, #00c6ff)";
+            consentBtn.style.color = "white";
+
+            consentBtn.onclick = async () => {
+              await updateDoc(doc(db, "documents", documentSnap.id), {
+                [`sharedWith.${currentUser.uid}.consent`]: true
+              });
+
+              alert("Consent Given! You can now access this document.");
+              loadSharedDocuments();
+            };
+
+            card.appendChild(consentBtn);
+          } else {
+            const now = new Date();
+            const expiry = shareInfo.expiresAt.toDate 
+              ? shareInfo.expiresAt.toDate()
+              : new Date(shareInfo.expiresAt);
+
+            if (now > expiry) {
+              const expiredLabel = document.createElement("small");
+              expiredLabel.innerHTML = "❌ <b>Access Expired</b>";
+              expiredLabel.style.display = "block";
+              expiredLabel.style.color = "#ff6b6b";
+              card.appendChild(expiredLabel);
+            } else {
+              const accessLabel = document.createElement("small");
+              const timeLeft = Math.ceil((expiry - now) / (1000 * 60 * 60));
+              accessLabel.innerHTML = `✅ <b>Access Active</b> (Expires in ${timeLeft}h)`;
+              accessLabel.style.display = "block";
+              accessLabel.style.marginBottom = "10px";
+              accessLabel.style.color = "#51cf66";
+              card.appendChild(accessLabel);
+
+              const link = document.createElement("a");
+              link.href = "#";
+              link.innerText = "📥 " + data.fileName;
+              link.style.display = "inline-block";
+              link.style.padding = "8px 12px";
+              link.style.background = "rgba(0, 198, 255, 0.1)";
+              link.style.borderRadius = "6px";
+              link.style.border = "1px solid rgba(0, 198, 255, 0.3)";
+              link.onclick = async (e) => {
+                e.preventDefault();
+                try {
+                  const fileRef = ref(storage, data.storagePath);
+                  const bytes = await getBytes(fileRef);
+                  const blob = new Blob([bytes]);
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = data.fileName;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch (error) {
+                  alert("Download failed: " + error.message);
+                }
+              };
+
+              card.appendChild(link);
+            }
+          }
+
+          sharedDocs.appendChild(card);
+        }
+      });
+    }
+
+  </script>
+
+</body>
+</html>

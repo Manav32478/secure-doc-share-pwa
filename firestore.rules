@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection - users can read/write their own data
+    match /users/{email} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.email == email;
+    }
+    
+    // Documents collection
+    match /documents/{documentId} {
+      // Owner can read and write their own documents
+      allow read, write: if request.auth != null && 
+                            resource.data.ownerId == request.auth.uid;
+      
+      // Shared users can read if they have consent and access hasn't expired
+      allow read: if request.auth != null && 
+                     resource.data.sharedWith != null &&
+                     resource.data.sharedWith[request.auth.uid] != null &&
+                     resource.data.sharedWith[request.auth.uid].consent == true &&
+                     resource.data.sharedWith[request.auth.uid].expiresAt > request.time;
+      
+      // Allow creation with proper owner
+      allow create: if request.auth != null && 
+                       request.resource.data.ownerId == request.auth.uid;
+    }
+    
+    // Shared links collection for public access
+    match /sharedLinks/{linkId} {
+      // Anyone with the link can read if not expired
+      allow read: if resource.data.expiresAt > request.time;
+      
+      // Only document owner can create/update/delete links
+      allow create, update, delete: if request.auth != null;
+    }
+  }
+}

@@ -1,0 +1,2389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureVault - Document Management Platform</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #dbe2ea;
+      --primary: #1d4ed8;
+      --primary-contrast: #ffffff;
+      --danger: #dc2626;
+      --shadow: rgba(15, 23, 42, 0.08);
+      --radius: 12px;
+      --elevation: 0 4px 16px var(--shadow);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    body {
+      font-family: '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .navbar {
+      background: var(--panel);
+      color: var(--text);
+      padding: 0;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .navbar-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 12px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .logo:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    }
+
+    .logo svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1;
+      color: #0f172a;
+    }
+
+    .brand-tagline {
+      font-size: 11px;
+      color: #9ca3af;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .navbar-user {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      animation: slideInRight 0.6s ease;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .user-email {
+      font-size: 14px;
+      opacity: 0.95;
+      font-weight: 500;
+    }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 10px 24px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.9);
+      border-color: rgba(239, 68, 68, 1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 48px 40px;
+    }
+
+    .section-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 32px;
+      letter-spacing: -0.7px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 5px;
+      height: 32px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .upload-section {
+      background: white;
+      padding: 44px;
+      border-radius: 16px;
+      margin-bottom: 48px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e5e7eb;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .upload-section:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .upload-area {
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 56px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #f8fafc;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-area::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(100, 116, 139, 0.08), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .upload-area:hover::before {
+      left: 100%;
+    }
+
+    .upload-area:hover {
+      border-color: #94a3b8;
+      background: #edf2f7;
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+    }
+
+    .upload-area.dragover {
+      border-color: #94a3b8;
+      background: #e2e8f0;
+      box-shadow: inset 0 0 20px rgba(15, 23, 42, 0.08);
+    }
+
+    .upload-icon {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 20px;
+      background: #e2e8f0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    }
+
+    .upload-icon svg {
+      width: 32px;
+      height: 32px;
+      fill: #1e293b;
+    }
+
+    .upload-area:hover .upload-icon {
+      transform: scale(1.04);
+      box-shadow: 0 8px 14px rgba(15, 23, 42, 0.16);
+    }
+
+    .upload-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a202c;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+
+    .upload-subtext {
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .file-selected {
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      border: 2px solid #10b981;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: slideInRight 0.4s ease;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+    }
+
+    /* Multiple files selection styles */
+    .files-selected-container {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 2px solid #10b981;
+      padding: 24px;
+      border-radius: 12px;
+      margin-top: 20px;
+      animation: fadeIn 0.5s ease;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+    }
+
+    .files-selected-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #a7f3d0;
+    }
+
+    .files-selected-header span {
+      font-weight: 700;
+      color: #065f46;
+      font-size: 15px;
+      letter-spacing: -0.3px;
+    }
+
+    .btn-clear-all {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-clear-all:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .files-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #d1fae5;
+      transition: all 0.3s ease;
+      animation: slideInRight 0.3s ease;
+    }
+
+    .file-item:hover {
+      border-color: #10b981;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+      transform: translateX(4px);
+    }
+
+    .file-item-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-item-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .file-item-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+    }
+
+    .file-item-name {
+      font-weight: 600;
+      color: #1a202c;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 14px;
+    }
+
+    .file-item-size {
+      color: #64748b;
+      font-size: 13px;
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+
+    .file-item-remove {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      color: #ef4444;
+      border: 1px solid #fecaca;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .file-item-remove:hover {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      border-color: #ef4444;
+      transform:scale(1.1);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border: 1px solid #dbe2ea;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.02em;
+      background: #f8fafc;
+      color: #1f2937;
+      box-shadow: inset 0 0 0 0 rgba(15, 23, 42, 0.15);
+    }
+
+    .btn:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.06);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+
+    .btn-primary {
+      background: #1d4ed8;
+      color: white;
+      border-color: #1d4ed8;
+      box-shadow: 0 2px 8px rgba(30, 64, 175, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: #1e40af;
+      border-color: #1e40af;
+      box-shadow: 0 4px 10px rgba(30, 64, 175, 0.25);
+    }
+
+    .btn-primary:active {
+      background: #1e3a8a;
+      transform: translateY(1px);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+      border-color: #ef4444;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      border-color: #dc2626;
+      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-danger:active {
+      background: #b91c1c;
+      transform: translateY(1px);
+    }
+
+    .btn-tertiary {
+      background: #eff2f7;
+      color: #1f2937;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+    }
+
+    .btn-tertiary:hover {
+      background: #e2e8f0;
+    }
+
+    .progress-bar {
+      display: none;
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .progress-bar.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+      background-size: 200% 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+      animation: shimmer 2s linear infinite;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    .section {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      animation: fadeIn 0.6s ease 0.2s both;
+      transition: all 0.3s ease;
+    }
+
+    .section:hover {
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .documents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .document-card {
+      border: 1px solid #dbe2ea;
+      border-radius: 12px;
+      padding: 24px;
+      background: #ffffff;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.07);
+      animation: fadeIn 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .document-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #94a3b8, #cbd5e1);
+      transform: translateX(-100%);
+      transition: transform 0.35s ease;
+    }
+
+    .document-card:hover::before {
+      transform: translateX(0);
+    }
+
+    .document-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+      border-color: #cbd5e0;
+    }
+
+    .document-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .document-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .document-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .document-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+
+    .document-title h3 {
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #1a202c;
+      letter-spacing: -0.3px;
+    }
+
+    .document-meta {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+.view-btn,
+    .download-btn,
+    .share-btn,
+    .delete-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 12px 16px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 10px;
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .view-btn:hover,
+    .download-btn:hover,
+    .share-btn:hover,
+    .delete-btn:hover {
+      background: #e2e8f0;
+      border-color: #94a3b8;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .view-btn:active,
+    .download-btn:active,
+    .share-btn:active,
+    .delete-btn:active {
+      transform: translateY(1px);
+    }
+
+    .view-btn {
+      border-left: 4px solid #1d4ed8;
+      color: #1e3a8a;
+    }
+
+    .download-btn {
+      border-left: 4px solid #2563eb;
+      color: #1e40af;
+    }
+
+    .share-btn {
+      border-left: 4px solid #6366f1;
+      color: #4338ca;
+    }
+
+    .delete-btn {
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+    }
+
+    /* Document Viewer Modal */
+    .viewer-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 2000;
+      overflow: auto;
+      backdrop-filter: blur(10px);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .viewer-modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .viewer-content {
+      position: relative;
+      width: 95%;
+      height: 95%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .viewer-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+      color: white;
+      padding: 20px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .viewer-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+      max-width: 70%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      letter-spacing: -0.3px;
+    }
+
+    .viewer-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .viewer-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .viewer-body {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+      background: #f7fafc;
+    }
+
+    .viewer-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .viewer-image {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      margin: 0 auto;
+      border-radius: 8px;
+    }
+
+    .viewer-text {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.6;
+      max-height: 100%;
+      overflow: auto;
+    }
+
+    .viewer-unsupported {
+      text-align: center;
+      padding: 80px 40px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      margin: 20px;
+    }
+
+    .viewer-unsupported-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+
+    .viewer-unsupported-text {
+      font-size: 18px;
+      color: #475569;
+      margin-bottom: 28px;
+      font-weight: 500;
+    }
+
+    .viewer-download-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      padding: 14px 36px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .viewer-download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal.show {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-close {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      color: #999;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+    }
+
+    .modal-close:hover {
+      color: #000;
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #1a202c;
+      clear: both;
+      letter-spacing: -0.5px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-generate {
+      width: 100%;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 12px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .link-result {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      background: #f0f4ff;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .link-result.show {
+      display: block;
+    }
+
+    .link-result-label {
+      font-size: 12px;
+      color: #718096;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .link-result-content {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .link-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 4px;
+      font-size: 12px;
+      background: white;
+      color: #2d3748;
+      word-break: break-all;
+    }
+
+    .btn-copy {
+      background: #667eea;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-copy:hover {
+      background: #5a67d8;
+    }
+
+    .expiry-info {
+      font-size: 12px;
+      color: #718096;
+      margin-top: 8px;
+    }
+
+    .btn-secondary {
+      background: #cbd5e0;
+      color: #2d3748;
+      margin-left: 8px;
+    }
+
+    .btn-secondary:hover {
+      background: #a0aec0;
+    }
+
+    .btn-danger {
+      background: #f56565;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #e53e3e;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .button-group button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 40px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .empty-state-icon {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #7c3aed;
+    }
+
+    .empty-state-icon svg {
+      width: 50px;
+      height: 50px;
+    }
+
+    .empty-state p {
+      font-size: 18px;
+      color: #1a202c;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 18px 28px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+      z-index: 1000;
+      animation: slideInRight 0.4s ease;
+      font-weight: 600;
+      font-size: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .notification.error {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+    }
+
+    .notification.loading {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .notification.hide {
+      animation: slideOut 0.3s ease;
+    }
+
+    @keyframes slideOut {
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 16px;
+      }
+
+      .upload-section,
+      .section {
+        padding: 20px;
+      }
+
+      .documents-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .navbar-container {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 16px;
+      }
+
+      .navbar-user {
+        flex-wrap: wrap;
+      }
+
+      .theme-name {
+        display: none;
+      }
+        gap: 8px;
+      }
+
+      .section-title {
+        font-size: 24px;
+      }
+
+      .upload-area {
+        padding: 40px 20px;
+      }
+
+      .upload-text {
+        font-size: 14px;
+      }
+
+      .upload-subtext {
+        font-size: 12px;
+      }
+
+      .files-selected-container,
+      .document-card {
+        padding: 14px;
+      }
+
+      .document-card {
+        margin-bottom: 14px;
+      }
+
+      .btn,
+      .btn-primary,
+      .btn-danger,
+      .btn-secondary,
+      .file-item-remove,
+      .view-btn,
+      .download-btn,
+      .share-btn,
+      .delete-btn {
+        min-width: 100%;
+      }
+
+      .document-meta {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        font-size: 14px;
+      }
+
+      .navbar-brand .brand-name {
+        font-size: 18px;
+      }
+
+      .navbar-brand .brand-tagline {
+        font-size: 10px;
+      }
+
+      .user-email {
+        font-size: 12px;
+      }
+
+      .upload-area {
+        padding: 32px 16px;
+      }
+
+      .upload-section,
+      .section {
+        margin: 8px 0;
+        border-radius: 12px;
+      }
+
+      .progress-bar {
+        height: 6px;
+      }
+
+      .progress-bar-fill {
+        height: 6px;
+      }
+
+      .files-selected-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 8px;
+        border-radius: 10px;
+      }
+
+      .file-item-info {
+        gap: 6px;
+      }
+
+      .documents-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .document-card {
+        margin-bottom: 12px;
+        padding: 12px;
+      }
+
+      .document-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .document-card .view-btn,
+      .document-card .download-btn,
+      .document-card .share-btn,
+      .document-card .delete-btn {
+        width: 100%;
+        font-size: 16px;
+        padding: 14px 10px;
+      }
+
+      .document-meta {
+        margin-bottom: 10px;
+      }
+
+      .file-item-remove,
+      .btn-clear-all,
+      #uploadAllBtn {
+        width: 100%;
+      }
+
+      .file-item-info {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="white"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-name">SecureVault</div>
+          <div class="brand-tagline">Document Management</div>
+        </div>
+      </div>
+      <div class="navbar-user">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <span class="user-email" id="userEmail"></span>
+        </div>
+        <button class="btn btn-logout" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="upload-section">
+      <h2 class="section-title">Upload Documents</h2>
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="white"/>
+          </svg>
+        </div>
+        <p class="upload-text">Click to browse or drag and drop your files here</p>
+        <p class="upload-subtext">Maximum 50MB per file • Multiple files supported</p>
+      </div>
+      <input type="file" id="fileInput" multiple>
+      <div id="fileSelected"></div>
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Your Documents</h2>
+      <div class="documents-grid" id="docsList">
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="currentColor" opacity="0.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 2v6h6M12 13v4M10 17h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p>No documents uploaded yet</p>
+          <p style="font-size: 13px; color: #64748b; margin-top: 8px;">Upload your first document to get started</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Viewer Modal -->
+  <div id="viewerModal" class="viewer-modal">
+    <div class="viewer-content">
+      <div class="viewer-header">
+        <h2 id="viewerTitle" class="viewer-title">Document Viewer</h2>
+        <button class="viewer-close" onclick="this.closest('.viewer-modal').classList.remove('show');">&times;</button>
+      </div>
+      <div id="viewerBody" class="viewer-body">
+        <!-- Content will be dynamically loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from "./js/supabase.js";
+
+    let currentUser = null;
+    let selectedFiles = [];
+
+    const uploadArea = document.getElementById("uploadArea");
+    const fileInput = document.getElementById("fileInput");
+    const fileSelected = document.getElementById("fileSelected");
+    const progressBar = document.getElementById("progressBar");
+    const progressBarFill = document.getElementById("progressBarFill");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const userEmail = document.getElementById("userEmail");
+    const docsList = document.getElementById("docsList");
+
+    function showNotification(message, type = 'success') {
+      const notif = document.createElement("div");
+      notif.className = `notification ${type}`;
+      notif.textContent = message;
+      document.body.appendChild(notif);
+
+      setTimeout(() => {
+        notif.classList.add("hide");
+        setTimeout(() => notif.remove(), 300);
+      }, 4000);
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function sanitizeFilename(filename) {
+      // Remove special characters and spaces, keep only alphanumeric, dots, and hyphens
+      return filename
+        .toLowerCase()
+        .replace(/[^a-z0-9.-]/g, '_')
+        .replace(/_{2,}/g, '_'); // Replace multiple underscores with single
+    }
+
+    // Check authentication
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!session) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      currentUser = session.user;
+      userEmail.textContent = currentUser.email;
+      loadDocuments();
+    });
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        currentUser = session.user;
+        userEmail.textContent = currentUser.email;
+        loadDocuments();
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await supabase.auth.signOut();
+        window.location.href = "index.html";
+      } catch (error) {
+        showNotification("Logout failed: " + error.message, "error");
+      }
+    });
+
+    uploadArea.addEventListener("click", () => fileInput.click());
+
+    uploadArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadArea.classList.add("dragover");
+    });
+
+    uploadArea.addEventListener("dragleave", () => {
+      uploadArea.classList.remove("dragover");
+    });
+
+    uploadArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove("dragover");
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleMultipleFileSelect(Array.from(files));
+      }
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        handleMultipleFileSelect(Array.from(e.target.files));
+      }
+    });
+
+    function handleMultipleFileSelect(files) {
+      // Filter files exceeding size limit
+      const validFiles = files.filter(file => {
+        if (file.size > 50 * 1024 * 1024) {
+          showNotification(`${file.name} exceeds 50MB limit`, "error");
+          return false;
+        }
+        return true;
+      });
+
+      if (validFiles.length === 0) return;
+
+      selectedFiles = validFiles;
+      displaySelectedFiles();
+    }
+
+    function displaySelectedFiles() {
+      if (selectedFiles.length === 0) {
+        fileSelected.innerHTML = "";
+        return;
+      }
+
+      const filesListHTML = selectedFiles.map((file, index) => `
+        <div class="file-item" data-index="${index}">
+          <div class="file-item-info">
+            <span class="file-item-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" opacity="0.3"/>
+                <path d="M14 2v6h6M9 15h6M9 19h6" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="file-item-name">${file.name}</span>
+            <span class="file-item-size">(${formatFileSize(file.size)})</span>
+          </div>
+          <button class="file-item-remove" data-index="${index}">×</button>
+        </div>
+      `).join('');
+
+      fileSelected.innerHTML = `
+        <div class="files-selected-container">
+          <div class="files-selected-header">
+            <span>✓ ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected</span>
+            <button class="btn-clear-all" id="clearAllBtn">Clear All</button>
+          </div>
+          <div class="files-list">
+            ${filesListHTML}
+          </div>
+          <button class="btn btn-primary" id="uploadAllBtn" style="margin-top: 12px;">Upload All (${selectedFiles.length})</button>
+        </div>
+      `;
+
+      // Add remove file handlers
+      document.querySelectorAll(".file-item-remove").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const index = parseInt(e.target.dataset.index);
+          selectedFiles.splice(index, 1);
+          displaySelectedFiles();
+        });
+      });
+
+      // Clear all handler
+      document.getElementById("clearAllBtn").addEventListener("click", () => {
+        selectedFiles = [];
+        fileInput.value = "";
+        displaySelectedFiles();
+      });
+
+      // Upload all handler
+      document.getElementById("uploadAllBtn").addEventListener("click", async () => {
+        await uploadAllFiles();
+      });
+    }
+
+    async function checkDuplicateAndUpload(file) {
+      try {
+        console.log("Checking for duplicate file:", { name: file.name, size: file.size });
+        
+        // Query for files with same name and size
+        const { data: existingFiles, error } = await supabase
+          .from("documents")
+          .select("id, file_name, file_size, storage_path")
+          .eq("owner_id", currentUser.id)
+          .eq("file_name", file.name)
+          .eq("file_size", file.size);
+
+        if (error) {
+          console.error("Error checking duplicates:", error);
+          // Continue with upload even if check fails
+          await uploadFile();
+          return;
+        }
+
+        if (existingFiles && existingFiles.length > 0) {
+          console.log("Found " + existingFiles.length + " duplicate(s)");
+          showDuplicatePrompt(file, existingFiles[0]);
+        } else {
+          console.log("No duplicates found, proceeding with upload");
+          await uploadFile();
+        }
+      } catch (err) {
+        console.error("Duplicate check error:", err);
+        // Continue with upload on error
+        await uploadFile();
+      }
+    }
+
+    function showDuplicatePrompt(newFile, existingFile) {
+      const modal = document.createElement("div");
+      modal.className = "modal show";
+      modal.innerHTML = `
+        <div class="modal-content">
+          <h2 class="modal-title">File Already Exists</h2>
+          <p style="color: #718096; margin-bottom: 20px;">
+            A file named "<strong>${existingFile.file_name}</strong>" with the same size (${formatFileSize(existingFile.file_size)}) already exists.
+          </p>
+          <p style="color: #718096; margin-bottom: 20px;">
+            What would you like to do?
+          </p>
+          <div class="button-group">
+            <button class="btn-secondary" id="keepBothBtn">Keep Both</button>
+            <button class="btn-danger" id="replaceBtn">Replace</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      document.getElementById("keepBothBtn").addEventListener("click", () => {
+        console.log("User chose to keep both files");
+        modal.remove();
+        uploadFile(); // Upload as new file
+      });
+
+      document.getElementById("replaceBtn").addEventListener("click", async () => {
+        console.log("User chose to replace file");
+        modal.remove();
+        await replaceFile(existingFile.id, existingFile.storage_path);
+      });
+
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
+    }
+
+    async function replaceFile(oldDocId, oldStoragePath) {
+      try {
+        showNotification("Replacing file...", "loading");
+        console.log("Replacing file:", { oldDocId, oldStoragePath });
+
+        // Delete old file from storage
+        console.log("Deleting old storage file...");
+        await supabase.storage
+          .from("documents")
+          .remove([oldStoragePath]);
+
+        // Delete old document record
+        console.log("Deleting old document record...");
+        const { error: deleteError } = await supabase
+          .from("documents")
+          .delete()
+          .eq("id", oldDocId);
+
+        if (deleteError) {
+          console.error("Error deleting old document:", deleteError);
+        }
+
+        // Delete associated shared links
+        console.log("Deleting shared links...");
+        await supabase
+          .from("shared_links")
+          .delete()
+          .eq("document_id", oldDocId);
+
+        console.log("Old file deleted, uploading new file...");
+        // Now upload the new file
+        await uploadFile();
+      } catch (error) {
+        console.error("Replace error:", error);
+        showNotification("Error during replacement: " + error.message, "error");
+      }
+    }
+
+
+
+    async function uploadAllFiles() {
+      if (selectedFiles.length === 0 || !currentUser) {
+        showNotification("No files selected", "error");
+        return;
+      }
+
+      const totalFiles = selectedFiles.length;
+      let successCount = 0;
+      let failedCount = 0;
+
+      progressBar.classList.add("active");
+
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const progress = ((i + 1) / totalFiles) * 100;
+        progressBarFill.style.width = progress + "%";
+        
+        showNotification(`Uploading ${i + 1}/${totalFiles}: ${file.name}`, "loading");
+
+        try {
+          await uploadSingleFile(file);
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}:`, error);
+          failedCount++;
+        }
+      }
+
+      progressBar.classList.remove("active");
+      progressBarFill.style.width = "0%";
+      fileSelected.innerHTML = "";
+      fileInput.value = "";
+      selectedFiles = [];
+
+      if (failedCount === 0) {
+        showNotification(`✓ Successfully uploaded ${successCount} file${successCount > 1 ? 's' : ''}!`, "success");
+      } else {
+        showNotification(`Uploaded ${successCount}, Failed ${failedCount}`, "error");
+      }
+
+      loadDocuments();
+    }
+
+    async function uploadSingleFile(file) {
+      if (!file || !currentUser) {
+        throw new Error("No file or user");
+      }
+
+      const timestamp = Date.now();
+      const fileName = file.name;
+      const sanitizedName = sanitizeFilename(fileName);
+      // Store inside bucket root under each user (RLS expects folder = userId)
+      const storagePath = `${currentUser.id}/${timestamp}_${sanitizedName}`;
+
+      console.log("Upload details:", { fileName, sanitizedName, storagePath });
+
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("documents")
+        .upload(storagePath, file, { upsert: false });
+
+      if (uploadError) {
+        console.error("Supabase upload error:", uploadError);
+
+        // If there is a legacy path with documents/ prefix, try fallback path by appending prefix
+        if (uploadError.status === 409 || uploadError.message?.includes("already exists")) {
+          const legacyPath = `documents/${storagePath}`;
+          const { data: legacyData, error: retryError } = await supabase.storage
+            .from("documents")
+            .upload(legacyPath, file, { upsert: true });
+
+          if (retryError) throw retryError;
+
+          // Save metadata with legacy path in case existing records are using this pattern
+          const { error: dbError } = await supabase.from("documents").insert([
+            {
+              file_name: fileName,
+              file_size: file.size,
+              file_type: file.type,
+              storage_path: legacyPath,
+              owner_id: currentUser.id,
+              owner_email: currentUser.email,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+
+          if (dbError) throw dbError;
+
+          return;
+        }
+
+        throw new Error(`Storage upload failed: ${uploadError.message || uploadError}`);
+      }
+
+      // Save metadata to database for the primary path
+      const { error: dbError } = await supabase.from("documents").insert([
+        {
+          file_name: fileName,
+          file_size: file.size,
+          file_type: file.type,
+          storage_path: storagePath,
+          owner_id: currentUser.id,
+          owner_email: currentUser.email,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (dbError) {
+        if (dbError.message && dbError.message.includes("policy")) {
+          console.warn("⚠️ RLS Policy blocking insert with owner_email, retrying...");
+          const { error: retryError } = await supabase.from("documents").insert([
+            {
+              file_name: fileName,
+              file_size: file.size,
+              file_type: file.type,
+              storage_path: storagePath,
+              owner_id: currentUser.id,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+          if (retryError) throw retryError;
+        } else {
+          throw dbError;
+        }
+      }
+    }
+
+    async function loadDocuments() {
+      try {
+        if (!currentUser) return;
+
+        const { data, error } = await supabase
+          .from("documents")
+          .select("*")
+          .eq("owner_id", currentUser.id)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          docsList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📄</div>
+              <p>No documents uploaded yet</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Build HTML in one go for better performance
+        const cardsHTML = data.map(doc => {
+          const createdDate = doc.created_at
+            ? new Date(doc.created_at).toLocaleDateString()
+            : "Just now";
+
+          return `
+            <div class="document-card">
+              <div class="document-header">
+                <div class="document-title">
+                  <div class="document-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" opacity="0.3"/>
+                      <path d="M14 2v6h6M9 13h6M9 17h6" stroke="white" fill="none" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                  <h3>${doc.file_name}</h3>
+                </div>
+              </div>
+              <div class="document-meta">
+                ${formatFileSize(doc.file_size)} • Uploaded ${createdDate}
+              </div>
+              <button class="view-btn" data-storage="${doc.storage_path}" data-filename="${doc.file_name}" data-filetype="${doc.file_type}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                View
+              </button>
+              <button class="download-btn" data-storage="${doc.storage_path}" data-filename="${doc.file_name}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download
+              </button>
+              <button class="share-btn" data-doc-id="${doc.id}" data-filename="${doc.file_name}" data-storage="${doc.storage_path}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share
+              </button>
+              <button class="delete-btn" data-doc-id="${doc.id}" data-filename="${doc.file_name}" data-storage="${doc.storage_path}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                Delete
+              </button>
+            </div>
+          `;
+        }).join('');
+
+        docsList.innerHTML = cardsHTML;
+
+        // Use event delegation for better performance
+        docsList.addEventListener("click", async (e) => {
+          const target = e.target.closest("button");
+          if (!target) return;
+
+          const dataset = target.dataset;
+
+          if (target.classList.contains("view-btn")) {
+            await viewDocument(dataset.storage, dataset.filename, dataset.filetype);
+          } else if (target.classList.contains("download-btn")) {
+            await downloadFile(dataset.storage, dataset.filename);
+          }
+        });
+      } catch (error) {
+        console.error("Error loading documents:", error);
+        showNotification("Failed to load documents: " + error.message, "error");
+      }
+    }
+
+    // Cache for viewed documents
+    const viewerCache = new Map();
+
+    async function createSignedFileUrl(storagePath, expiresInSeconds) {
+      const { data, error } = await supabase.storage
+        .from("documents")
+        .createSignedUrl(storagePath, expiresInSeconds);
+
+      if (!error && data?.signedUrl) {
+        return { signedUrl: data.signedUrl, storagePath };
+      }
+
+      // Fallback for legacy paths.
+      if (storagePath.startsWith("documents/")) {
+        const shortenedPath = storagePath.replace(/^documents\//, "");
+        const { data: fallbackData, error: fallbackError } = await supabase.storage
+          .from("documents")
+          .createSignedUrl(shortenedPath, expiresInSeconds);
+        if (!fallbackError && fallbackData?.signedUrl) {
+          return { signedUrl: fallbackData.signedUrl, storagePath: shortenedPath };
+        }
+      } else {
+        const prefixedPath = `documents/${storagePath}`;
+        const { data: fallbackData, error: fallbackError } = await supabase.storage
+          .from("documents")
+          .createSignedUrl(prefixedPath, expiresInSeconds);
+        if (!fallbackError && fallbackData?.signedUrl) {
+          return { signedUrl: fallbackData.signedUrl, storagePath: prefixedPath };
+        }
+      }
+
+      throw error || new Error("Failed to generate secure link");
+    }
+
+    // View document in modal
+    async function downloadFromStoragePath(storagePath) {
+      const { data, error } = await supabase.storage
+        .from("documents")
+        .download(storagePath);
+
+      if (!error) return { data, storagePath };
+
+      // Fallback for legacy path with 'documents/' prefix or without
+      if (storagePath.startsWith("documents/")) {
+        const shortenedPath = storagePath.replace(/^documents\//, "");
+        const { data: fallbackData, error: fallbackError } = await supabase.storage
+          .from("documents")
+          .download(shortenedPath);
+
+        if (!fallbackError) return { data: fallbackData, storagePath: shortenedPath };
+      } else {
+        const prefixedPath = `documents/${storagePath}`;
+        const { data: fallbackData, error: fallbackError } = await supabase.storage
+          .from("documents")
+          .download(prefixedPath);
+
+        if (!fallbackError) return { data: fallbackData, storagePath: prefixedPath };
+      }
+
+      throw error;
+    }
+
+    async function viewDocument(storagePath, fileName, fileType) {
+      try {
+        showNotification("Loading...", "loading");
+
+        const signed = await createSignedFileUrl(storagePath, 60 * 60);
+        const signedUrl = signed.signedUrl;
+        const actualPath = signed.storagePath;
+
+        const viewerModal = document.getElementById("viewerModal");
+        const viewerTitle = document.getElementById("viewerTitle");
+        const viewerBody = document.getElementById("viewerBody");
+
+        viewerTitle.textContent = fileName;
+
+        // Render based on file type
+        if (fileType.startsWith("image/")) {
+          // Image files
+          viewerBody.innerHTML = `<img src="${signedUrl}" class="viewer-image" alt="${fileName}">`;
+        } else if (fileType === "application/pdf") {
+          // PDF files
+          viewerBody.innerHTML = `<iframe src="${signedUrl}#toolbar=0" class="viewer-frame"></iframe>`;
+        } else if (fileType.startsWith("text/") || fileType === "application/json") {
+          // Text files
+          const text = await (await fetch(signedUrl)).text();
+          viewerBody.innerHTML = `<div class="viewer-text">${escapeHtml(text)}</div>`;
+        } else if (fileType.includes("word") || fileType.includes("document")) {
+          // Word documents - use Google Docs Viewer
+          viewerBody.innerHTML = `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(signedUrl)}&embedded=true" class="viewer-frame"></iframe>`;
+        } else {
+          // Unsupported file type
+          viewerBody.innerHTML = `
+            <div class="viewer-unsupported">
+              <div class="viewer-unsupported-icon">📄</div>
+              <div class="viewer-unsupported-text">Preview not available for this file type</div>
+              <button class="viewer-download-btn" onclick="document.getElementById('viewerModal').classList.remove('show'); downloadFile('${actualPath}', '${fileName}');">
+                Download Instead
+              </button>
+            </div>
+          `;
+        }
+
+        // Show modal
+        viewerModal.classList.add("show");
+        showNotification("✓ Document opened!", "success");
+      } catch (error) {
+        console.error("View error:", error);
+        showNotification("Failed to open document: " + error.message, "error");
+      }
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Viewer modal event handlers
+    const viewerModal = document.getElementById("viewerModal");
+    
+    // Close on ESC key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && viewerModal.classList.contains("show")) {
+        viewerModal.classList.remove("show");
+      }
+    });
+    
+    // Close when clicking outside
+    viewerModal.addEventListener("click", (e) => {
+      if (e.target === viewerModal) {
+        viewerModal.classList.remove("show");
+      }
+    });
+
+    async function downloadFile(storagePath, fileName) {
+      try {
+        showNotification("Starting download...", "loading");
+
+        const signed = await createSignedFileUrl(storagePath, 60 * 10);
+        const url = signed.signedUrl;
+
+        // Android WebView path: use native downloader for reliable save to device.
+        if (window.Android && typeof window.Android.openExternalUrl === "function") {
+          window.Android.openExternalUrl(url);
+          showNotification("✓ Download started! Check Downloads", "success");
+          return;
+        }
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // WebView fallback: open URL directly when synthetic clicks are ignored.
+        setTimeout(() => {
+          window.open(url, "_blank");
+        }, 100);
+
+        showNotification("✓ Download started!", "success");
+      } catch (error) {
+        console.error("Download error:", error);
+        showNotification("Failed to download file: " + error.message, "error");
+      }
+    }
+
+    // Share link functionality
+    const shareModal = document.getElementById("shareModal");
+    const modalClose = document.getElementById("modalClose");
+    const expiryHoursInput = document.getElementById("expiryHours");
+    const btnGenerateLink = document.getElementById("btnGenerateLink");
+    const linkResult = document.getElementById("linkResult");
+    const generatedLink = document.getElementById("generatedLink");
+    const btnCopyLink = document.getElementById("btnCopyLink");
+    const expiryInfo = document.getElementById("expiryInfo");
+
+    let currentDocWithShare = null;
+
+    // Open modal on share button click
+    document.addEventListener("click", (e) => {
+      if (e.target.classList.contains("share-btn")) {
+        currentDocWithShare = {
+          id: e.target.dataset.docId,
+          filename: e.target.dataset.filename,
+          storage: e.target.dataset.storage
+        };
+        expiryHoursInput.value = "24";
+        linkResult.classList.remove("show");
+        shareModal.classList.add("show");
+      }
+    });
+
+    // Close modal
+    modalClose.addEventListener("click", () => {
+      shareModal.classList.remove("show");
+    });
+
+    shareModal.addEventListener("click", (e) => {
+      if (e.target === shareModal) {
+        shareModal.classList.remove("show");
+      }
+    });
+
+    // Generate unique link ID
+    function generateLinkId() {
+      const timestamp = Date.now().toString(36);
+      const random = Math.random().toString(36).substr(2, 9);
+      return `${timestamp}-${random}`;
+    }
+
+    // Generate view-only shared link
+    btnGenerateLink.addEventListener("click", async () => {
+      if (!currentDocWithShare) return;
+
+      const hours = parseInt(expiryHoursInput.value, 10);
+      
+      if (!Number.isInteger(hours) || hours < 1 || hours > 720) {
+        showNotification("Please enter hours between 1 and 720", "error");
+        return;
+      }
+
+      try {
+        btnGenerateLink.disabled = true;
+        btnGenerateLink.textContent = "Generating...";
+
+        const expiresInSeconds = hours * 60 * 60;
+        const expiresAt = new Date(Date.now() + expiresInSeconds * 1000).toISOString();
+
+        // Direct time-bound secure URL from Supabase Storage. No localhost/appassets dependency.
+        const signed = await createSignedFileUrl(currentDocWithShare.storage, expiresInSeconds);
+        const shareUrl = signed.signedUrl;
+        
+        generatedLink.value = shareUrl;
+        expiryInfo.textContent = `Link expires in ${hours} hour(s) at ${new Date(expiresAt).toLocaleString()}`;
+        linkResult.classList.add("show");
+
+        showNotification("✓ View-only link generated!", "success");
+      } catch (error) {
+        console.error("Error generating link:", error);
+        showNotification("Failed to generate link: " + error.message, "error");
+      } finally {
+        btnGenerateLink.disabled = false;
+        btnGenerateLink.textContent = "Generate View Link";
+      }
+    });
+
+    // Copy link to clipboard
+    btnCopyLink.addEventListener("click", async () => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(generatedLink.value);
+        } else {
+          generatedLink.focus();
+          generatedLink.select();
+          generatedLink.setSelectionRange(0, generatedLink.value.length);
+          const copied = document.execCommand("copy");
+          if (!copied) {
+            throw new Error("Clipboard not available");
+          }
+        }
+        showNotification("✓ Link copied to clipboard!", "success");
+        btnCopyLink.textContent = "Copied!";
+        setTimeout(() => {
+          btnCopyLink.textContent = "Copy";
+        }, 2000);
+      } catch (error) {
+        console.error("Copy error:", error);
+        showNotification("Failed to copy link", "error");
+      }
+    });
+
+    // Add share button event handlers when documents are loaded
+    const originalLoadDocuments = loadDocuments;
+    loadDocuments = async function() {
+      await originalLoadDocuments.call(this);
+      // Share and delete buttons are now handled by document click listeners
+    };
+
+    // Delete functionality with proper verification
+    async function handleDeleteClick(docId, fileName, storagePath) {
+      console.log("🗑️ Delete handler called:", { docId, fileName, storagePath });
+
+      const confirmed = confirm(`Are you sure you want to delete "${fileName}"?\n\nThis action cannot be undone.`);
+      
+      if (!confirmed) {
+        console.log("Delete cancelled by user");
+        return;
+      }
+
+      try {
+        showNotification("Deleting document...", "loading");
+        console.log("Starting deletion process...");
+
+        // STEP 1: Delete from storage
+        console.log("📦 Deleting from storage:", storagePath);
+        try {
+          const storageResult = await supabase.storage
+            .from("documents")
+            .remove([storagePath]);
+          console.log("✅ Storage result:", storageResult);
+        } catch (storageErr) {
+          console.warn("⚠️ Storage delete issue (file may already be gone):", storageErr);
+        }
+
+        // STEP 2: Delete shared links first (must happen before document)
+        console.log("🔗 Deleting shared links for document:", docId);
+        try {
+          const linksResult = await supabase
+            .from("shared_links")
+            .delete()
+            .eq("document_id", docId);
+          console.log("✅ Shared links result:", linksResult);
+        } catch (linksErr) {
+          console.warn("⚠️ Link deletion warning:", linksErr);
+        }
+
+        // STEP 3: Delete from documents table with RLS workaround
+        console.log("💾 Deleting from documents table, docId:", docId);
+        
+        // First try: Direct delete with owner verification
+        let dbResult = await supabase
+          .from("documents")
+          .delete()
+          .eq("id", docId)
+          .eq("owner_id", currentUser.id)
+          .select();
+        
+        console.log("Direct delete result:", dbResult);
+
+        // If direct delete succeeds, we're done
+        if (!dbResult.error && dbResult.data && dbResult.data.length > 0) {
+          console.log("✅ Document deleted successfully!");
+          showNotification("✓ Document deleted successfully!", "success");
+          loadDocuments();
+          return;
+        }
+
+        // Second try: Use RPC function if available
+        console.warn("⚠️ Direct delete blocked by RLS, trying RPC function...");
+        try {
+          const rpcResult = await supabase.rpc("delete_user_document", {
+            p_doc_id: docId,
+            p_user_id: currentUser.id
+          });
+          
+          if (!rpcResult.error && rpcResult.data) {
+            console.log("✅ Document deleted via RPC function!");
+            showNotification("✓ Document deleted successfully!", "success");
+            loadDocuments();
+            return;
+          }
+        } catch (rpcErr) {
+          console.log("ℹ️ RPC function not available (checking if fix needed):", rpcErr.message);
+        }
+
+        // If both methods failed, check what happened
+        if (dbResult.error) {
+          console.error("❌ Delete error:", dbResult.error);
+          const fixInstructions = "RLS Policy Issue: Copy & paste this in Supabase SQL Editor:\n\nALTER TABLE documents DISABLE ROW LEVEL SECURITY;\n\nThen try deleting again. (Or ask admin to fix RLS policy)";
+          console.error(fixInstructions);
+          throw new Error(fixInstructions);
+        }
+
+        throw new Error("Delete failed: Document verification failed. DocId: " + docId);
+
+      } catch (error) {
+        console.error("❌ Delete failed:", error);
+        const errorMsg = error.message || String(error);
+        
+        // If RLS policy error, show detailed fix instructions
+        if (errorMsg.includes("RLS") || errorMsg.includes("Policy")) {
+          const fixMsg = "⚠️ RLS POLICY BLOCKING DELETE\n\n" +
+            "Quick Fix (30 seconds):\n" +
+            "1. Go: https://supabase.com/dashboard\n" +
+            "2. Project: doc-share-55636\n" +
+            "3. SQL Editor → Copy & run:\n\n" +
+            "ALTER TABLE documents DISABLE ROW LEVEL SECURITY;\n\n" +
+            "Or see DELETE_FIX.md for permanent solution.";
+          showNotification(fixMsg, "error");
+          console.warn(fixMsg);
+        } else {
+          showNotification("Delete failed: " + errorMsg, "error");
+        }
+      }
+    }
+
+    // Attach delete handlers to document cards
+    async function attachDeleteHandlers() {
+      const deleteButtons = document.querySelectorAll(".delete-btn");
+      console.log("📌 Attaching handlers to " + deleteButtons.length + " delete buttons");
+      
+      deleteButtons.forEach((btn, index) => {
+        // Clone to remove old listeners
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const docId = newBtn.dataset.docId;
+          const fileName = newBtn.dataset.filename;
+          const storagePath = newBtn.dataset.storage;
+          
+          console.log(`[${index}] Delete clicked for:`, { docId, fileName, storagePath });
+          await handleDeleteClick(docId, fileName, storagePath);
+        });
+      });
+    }
+
+    // Override loadDocuments to attach handlers
+    const originalLoadDocs = loadDocuments;
+    loadDocuments = async function() {
+      await originalLoadDocs.call(this);
+      setTimeout(() => {
+        attachDeleteHandlers();
+      }, 100);
+    };
+  </script>
+
+  <!-- Share Link Modal -->
+  <div id="shareModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <h2 class="modal-title">Generate View-Only Link</h2>
+      
+      <div class="form-group">
+        <label for="expiryHours">Expiry in Hours (1-720):</label>
+        <input type="number" id="expiryHours" min="1" max="720" value="24" placeholder="Hours until link expires">
+      </div>
+
+      <button class="btn-generate" id="btnGenerateLink">Generate View Link</button>
+
+      <div class="link-result" id="linkResult">
+        <div class="link-result-label">✓ View-Only Link Generated</div>
+        <div class="link-result-content">
+          <input class="link-input" id="generatedLink" readonly>
+          <button class="btn-copy" id="btnCopyLink">Copy</button>
+        </div>
+        <div class="expiry-info" id="expiryInfo"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

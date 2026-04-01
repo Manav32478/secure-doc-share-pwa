@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shared Document - SecureVault</title>
+  
+  <!-- PDF.js Library for secure PDF viewing (no download/print) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Set worker for PDF.js
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      padding: 48px;
+      max-width: 500px;
+      width: 100%;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      animation: fadeIn 0.6s ease 0.1s both;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .logo svg {
+      width: 32px;
+      height: 32px;
+      fill: white;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #1a202c;
+      margin-bottom: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .document-info {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 28px;
+      border: 1px solid #bfdbfe;
+    }
+
+    .document-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a202c;
+      margin-bottom: 12px;
+      word-break: break-word;
+      letter-spacing: -0.3px;
+    }
+
+    .document-meta {
+      font-size: 13px;
+      color: #64748b;
+      display: flex;
+      gap: 15px;
+      font-weight: 500;
+    }
+
+    .expiry-timer {
+      font-size: 13px;
+      color: #ef4444;
+      margin-top: 12px;
+      font-weight: 700;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 12px;
+      letter-spacing: -0.2px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-download {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      border: 1px solid #2563eb;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-download:disabled {
+      background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+      cursor: not-allowed;
+      transform: none;
+      opacity: 0.6;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 420px;
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .viewer-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #f8fafc;
+    }
+
+    .viewer-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .viewer-text {
+      width: 100%;
+      height: 100%;
+      padding: 14px;
+      overflow: auto;
+      color: #1e293b;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: #f8fafc;
+    }
+
+    #pdf-canvas {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      margin: 0 auto;
+      border: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .pdf-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: #f1f5f9;
+      border-top: 1px solid #e2e8f0;
+      border-radius: 0 0 12px 12px;
+      flex-wrap: wrap;
+    }
+
+    .pdf-btn {
+      padding: 6px 14px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .pdf-btn:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .pdf-btn:disabled {
+      background: #cbd5e0;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .pdf-btn-fullscreen {
+      background: #6366f1;
+      margin-left: 8px;
+    }
+
+    .pdf-btn-fullscreen:hover {
+      background: #4f46e5;
+    }
+
+    .pdf-page-info {
+      padding: 0 6px;
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Fullscreen secure viewer */
+    #secureVideoViewer {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #000;
+      /* Critical: prevents OS screenshot capture tools from capturing video frames */
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    #secureVideoViewer::-webkit-media-controls { display: none !important; }
+    #secureVideoViewer::-webkit-media-controls-enclosure { display: none !important; }
+    #secureVideoViewer::-webkit-media-controls-panel { display: none !important; }
+
+    .viewer-wrapper:fullscreen,
+    .viewer-wrapper:-webkit-full-screen {
+      background: #000;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .viewer-wrapper:fullscreen #secureVideoViewer,
+    .viewer-wrapper:-webkit-full-screen #secureVideoViewer {
+      flex: 1;
+      height: calc(100vh - 50px);
+    }
+
+    .viewer-note {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    /* ── Watermark overlay ────────────────────────────────── */
+    #secureWatermark {
+      position: fixed;
+      bottom: 70px;
+      right: 16px;
+      z-index: 999999;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(180,0,0,0.18);
+      border-radius: 8px;
+      padding: 7px 12px;
+      text-align: right;
+      backdrop-filter: blur(2px);
+    }
+
+    .wm-text {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: monospace;
+      color: rgba(160, 0, 0, 0.75);
+      line-height: 1.6;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    /* ── Identity Gate ───────────────────────────────────── */
+    .identity-gate {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 16px;
+      padding: 36px 28px;
+      text-align: center;
+    }
+    .ig-icon { font-size: 48px; margin-bottom: 12px; }
+    .ig-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0c4a6e;
+      margin: 0 0 8px;
+    }
+    .ig-sub {
+      font-size: 13px;
+      color: #475569;
+      margin: 0 0 24px;
+      line-height: 1.6;
+    }
+    .ig-form { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+    .ig-input {
+      width: 100%;
+      max-width: 340px;
+      padding: 12px 16px;
+      border: 2px solid #7dd3fc;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      color: #0f172a;
+      background: #fff;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .ig-input:focus { border-color: #0284c7; }
+    .ig-btn {
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      max-width: 340px;
+    }
+    .ig-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(2,132,199,0.35); }
+    .ig-warn {
+      font-size: 11px;
+      color: #b45309;
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 8px 14px;
+      margin: 4px 0 0;
+      max-width: 340px;
+      line-height: 1.5;
+    }
+
+    .error-message {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .success-message {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1px solid #a7f3d0;
+      color: #166534;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #718096;
+      font-size: 14px;
+    }
+
+    /* Prevent screenshot and screen recording */
+    body {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .container {
+      pointer-events: auto;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-app-region: no-drag;
+    }
+
+    .document-info {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .btn-download {
+      -webkit-app-region: no-drag;
+    }
+
+    /* Enhanced security: Prevent captures */
+    @supports (-webkit-app-region: no-drag) {
+      body {
+        -webkit-app-region: no-drag;
+      }
+    }
+
+    /* Prevent screen capture CSS property (browsers that support it) */
+    html {
+      -webkit-user-select: none !important;
+      user-select: none !important;
+    }
+
+    body {
+      overflow: hidden !important;
+    }
+
+    /* Prevent overlay detection */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Warning watermark (subtle) */
+    body::after {
+      content: 'CONFIDENTIAL - SCREENSHOTS & RECORDING PROHIBITED';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 60px;
+      color: rgba(255, 0, 0, 0.05);
+      font-weight: bold;
+      white-space: nowrap;
+      z-index: -1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="white"/>
+      </svg>
+    </div>
+    <h1>Shared Document</h1>
+    <div id="content">
+      <div class="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Verifying link...</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from "./js/supabase.js";
+
+    const contentDiv = document.getElementById("content");
+
+    // ============================================================================
+    // COMPREHENSIVE SCREENSHOT & SCREEN RECORDING PREVENTION
+    // ============================================================================
+
+    // 1. Block all keyboard shortcuts for screenshots
+    document.addEventListener("keydown", (e) => {
+      // Block Print Screen (all variants)
+      if (e.key === "PrintScreen" || e.code === "PrintScreen") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Screenshots are prohibited for this document");
+        return false;
+      }
+
+      // Block Ctrl+PrintScreen (Windows)
+      if ((e.ctrlKey || e.metaKey) && (e.key === "PrintScreen" || e.code === "PrintScreen")) {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Screenshots are prohibited for this document");
+        return false;
+      }
+
+      // Block Alt+PrintScreen (Windows)
+      if (e.altKey && (e.key === "PrintScreen" || e.code === "PrintScreen")) {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Screenshots are prohibited for this document");
+        return false;
+      }
+
+      // Block Shift+Cmd+3 (macOS - Full Screenshot)
+      if (e.shiftKey && e.metaKey && e.key === "3") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Screenshots are prohibited for this document");
+        return false;
+      }
+
+      // Block Shift+Cmd+4 (macOS - Partial Screenshot)
+      if (e.shiftKey && e.metaKey && e.key === "4") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Screenshots are prohibited for this document");
+        return false;
+      }
+
+      // Block Shift+Cmd+5 (macOS - Screenshot & Recording)
+      if (e.shiftKey && e.metaKey && e.key === "5") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("Screenshots & Screen Recording are prohibited");
+        return false;
+      }
+
+      // Block Ctrl+Shift+S (Chrome Screenshot)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "s") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Screenshots are prohibited for this document");
+        return false;
+      }
+
+      // Block Shift+Ctrl+C (Chromebook Screenshot)
+      if (e.shiftKey && e.ctrlKey && e.key === "c") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Screenshots are prohibited for this document");
+        return false;
+      }
+
+      // Block F12 (Developer Tools)
+      if (e.key === "F12") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Developer Tools are disabled");
+        return false;
+      }
+
+      // Block Ctrl+Shift+I (Developer Tools)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "I") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Developer Tools are disabled");
+        return false;
+      }
+
+      // Block Ctrl+Shift+J (Developer Console)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "J") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("🔒 Developer Tools are disabled");
+        return false;
+      }
+
+      // Block Ctrl+Shift+C (Inspect Element)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "C") {
+        e.preventDefault();
+        e.stopPropagation();
+        showAlert("Inspector is disabled");
+        return false;
+      }
+    }, true);
+
+    // 2. Prevent right-click (context menu)
+    document.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showAlert("Right-click is disabled for security");
+      return false;
+    }, true);
+
+    // 3. Prevent copy/paste operations
+    document.addEventListener("copy", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showAlert("Copying is not allowed");
+      return false;
+    }, true);
+
+    document.addEventListener("cut", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, true);
+
+    document.addEventListener("paste", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, true);
+
+    // 4. Disable drag and drop
+    document.addEventListener("drag", (e) => {
+      e.preventDefault();
+      return false;
+    }, true);
+
+    document.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, true);
+
+    // 5. Prevent mouse selection and dragging
+    document.addEventListener("selectstart", (e) => {
+      e.preventDefault();
+      return false;
+    }, true);
+
+    document.addEventListener("mousedown", (e) => {
+      if (e.button === 2) { // Right click
+        e.preventDefault();
+        return false;
+      }
+    }, true);
+
+    // 6. Block ALL screen capture & recording APIs (comprehensive)
+    if (navigator.mediaDevices) {
+      // Override getDisplayMedia (browser screen recording)
+      navigator.mediaDevices.getDisplayMedia = function() {
+        console.warn("🔒 Screen recording attempt blocked");
+        showAlert("🔒 Screen recording is not allowed for this document");
+        return Promise.reject(new DOMException("Screen recording is disabled", "NotAllowedError"));
+      };
+      // Override captureStream via RTCPeerConnection workarounds
+      if (navigator.mediaDevices.captureStream) {
+        navigator.mediaDevices.captureStream = function() {
+          return Promise.reject(new DOMException("Blocked", "NotAllowedError"));
+        };
+      }
+    }
+    // Override at the prototype level too (harder to circumvent)
+    try {
+      Object.defineProperty(navigator.mediaDevices, "getDisplayMedia", {
+        writable: false,
+        configurable: false,
+        value: function() {
+          return Promise.reject(new DOMException("Screen recording is disabled", "NotAllowedError"));
+        }
+      });
+    } catch(e) { /* already frozen */ }
+
+    // Block Picture-in-Picture API globally
+    if (document.exitPictureInPicture) {
+      document.addEventListener("enterpictureinpicture", (e) => {
+        e.preventDefault();
+        document.exitPictureInPicture?.();
+        showAlert("🔒 Picture-in-Picture is disabled");
+      }, true);
+    }
+
+    // Watch for dynamically-added video elements and lock them down
+    const videoObserver = new MutationObserver((mutations) => {
+      mutations.forEach(({ addedNodes }) => {
+        addedNodes.forEach((node) => {
+          if (node.tagName === "VIDEO") {
+            node.disablePictureInPicture = true;
+            node.disableRemotePlayback = true;
+            node.addEventListener("contextmenu", (e) => e.preventDefault());
+          }
+        });
+      });
+    });
+    videoObserver.observe(document.body, { childList: true, subtree: true });
+
+
+    // 8. Monitor for visibility changes (minimization, alt-tab)
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        console.warn("🔒 Document hidden - user attempted to switch window");
+      } else {
+        console.log("🔒 Document visible again");
+      }
+    }, true);
+
+    // 9. Detect focus loss (potential recording switch)
+    window.addEventListener("blur", () => {
+      console.warn("🔒 Window lost focus");
+    }, true);
+
+    window.addEventListener("focus", () => {
+      console.log("🔒 Window regained focus");
+    }, true);
+
+    // 10. Block canvas capture API (HTML2Canvas, similar tools)
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(contextType, ...args) {
+      if (contextType === "2d" || contextType === "webgl" || contextType === "webgl2") {
+        console.warn("🔒 Canvas access monitored");
+      }
+      return originalGetContext.apply(this, [contextType, ...args]);
+    };
+
+    // 11. Detect and block accessibility services (often used for recording)
+    if (navigator.accessibility) {
+      console.warn("🔒 Accessibility features detected - monitoring enabled");
+    }
+
+    // 12. Add watermark and disable text selection more aggressively
+    document.addEventListener("selectstart", (e) => {
+      e.preventDefault();
+      return false;
+    }, true);
+
+    document.oncopy = function(e) {
+      e.preventDefault();
+      return false;
+    };
+
+    document.oncut = function(e) {
+      e.preventDefault();
+      return false;
+    };
+
+    document.onpaste = function(e) {
+      e.preventDefault();
+      return false;
+    };
+
+    // 13. Periodic warning if focus lost (user trying to capture)
+    let lastFocusTime = Date.now();
+    window.addEventListener("blur", () => {
+      lastFocusTime = Date.now();
+      console.warn("🔒 Potential capture attempt - window focus lost");
+      // Disable interaction when window loses focus (recording protection)
+      document.body.style.opacity = "0.7";
+      document.body.style.pointerEvents = "none";
+    });
+
+    window.addEventListener("focus", () => {
+      console.log("🔒 Window regained focus");
+      // Re-enable when focused
+      document.body.style.opacity = "1";
+      document.body.style.pointerEvents = "auto";
+    });
+
+    // 14. AGGRESSIVE: Disable iframe sandbox & prevent external embeds
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        // Prevent any iframes from being created/modified with download capabilities
+        if (mutation.addedNodes.length) {
+          mutation.addedNodes.forEach((node) => {
+            if (node.tagName === "IFRAME") {
+              node.sandbox.add("disable-downloads");
+              node.allow = ""; // Remove all permissions
+              console.warn("🔒 External iframe detected and sandboxed");
+            }
+          });
+        }
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // 15. Prevent OS-level screen recording detection
+    let recordingIntervalId = setInterval(() => {
+      // Check for Chrome extension recording indicators
+      if (document.documentElement.getAttribute("data-recording")) {
+        console.warn("🔒 Screen recording extension detected");
+        showAlert("Screen recording is not allowed for this document");
+      }
+
+      // Check if page is being captured (performance anomalies)
+      const frameRate = performance.now();
+      if (frameRate % 16.67 === 0) { // 60fps indicator
+        // Could indicate recording
+      }
+    }, 2000);
+
+    // 17. Disable developer tools more aggressively
+    let devToolsOpen = false;
+    setInterval(() => {
+      const widthThreshold = window.outerWidth - window.innerWidth > 160;
+      const heightThreshold = window.outerHeight - window.innerHeight > 160;
+      
+      if (widthThreshold || heightThreshold) {
+        if (!devToolsOpen) {
+          devToolsOpen = true;
+          showAlert("🔒 Developer Tools are disabled for security");
+          // Force close by redirecting
+          console.clear();
+        }
+      } else {
+        devToolsOpen = false;
+      }
+    }, 500);
+
+    // 18. Monitor for recording indicators (browser captures when recording)
+    setInterval(() => {
+      // Check if page performance metrics are unusual (sign of recording)
+      const perf = performance.getEntriesByType("measure");
+      if (navigator.permissions) {
+        navigator.permissions.query({ name: "display-capture" }).catch((err) => {
+          console.log("🔒 Screen capture API blocked");
+        });
+      }
+    }, 1000);
+
+    function showAlert(message) {
+      // Create a prominent alert
+      const existingAlert = document.querySelector("[data-security-alert]");
+      if (existingAlert) {
+        existingAlert.remove();
+      }
+
+      const alert = document.createElement("div");
+      alert.setAttribute("data-security-alert", "true");
+      alert.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        color: white;
+        padding: 14px 28px;
+        border-radius: 8px;
+        z-index: 99999;
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: 0 8px 24px rgba(229, 62, 62, 0.4);
+        border: 1px solid #9b2c2c;
+        animation: slideIn 0.3s ease-out;
+      `;
+      alert.textContent = message;
+      document.body.appendChild(alert);
+      
+      // Auto-remove after 4 seconds
+      setTimeout(() => {
+        alert.style.animation = "slideOut 0.3s ease-in";
+        setTimeout(() => alert.remove(), 300);
+      }, 4000);
+    }
+
+    // Add animation styles
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+      @keyframes slideOut {
+        from {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-10px);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Get link ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const linkId = urlParams.get("link");
+
+    // Parse Supabase timestamps as UTC always.
+    // Supabase may return timestamps WITHOUT timezone info (e.g. "2026-03-01T16:33:00").
+    // new Date() treats those as LOCAL time per ECMAScript spec, corrupting the countdown.
+    // Fix: append 'Z' when no timezone marker is present to force UTC parsing.
+    function parseUTCDate(str) {
+      if (!str) return new Date(NaN);
+      const s = str.replace(" ", "T");  // handle "2026-03-01 16:33:00" format
+      return new Date(/Z$|[+-]\d{2}:?\d{2}$/.test(s) ? s : s + "Z");
+    }
+
+    async function verifyAndLoadDocument() {
+      try {
+        console.log("🔍 Verifying shared link:", linkId);
+        
+        if (!linkId) {
+          showError("❌ No link provided in URL");
+          return;
+        }
+
+        // Get link from database
+        console.log("📥 Fetching shared link from database with ID:", linkId);
+        const { data: linkData, error: linkError } = await supabase
+          .from("shared_links")
+          .select("*")
+          .eq("link_id", linkId)
+          .single();
+
+        if (linkError) {
+          console.error("❌ Link fetch error:", linkError);
+          console.error("Error details:", linkError.code, linkError.message);
+          showError("Link not found. It may have been deleted or expired.");
+          return;
+        }
+
+        if (!linkData) {
+          console.error("❌ No link data returned");
+          showError("Link not found");
+          return;
+        }
+
+        console.log("✅ Link found:", linkData);
+
+        // Supabase may return expires_at WITHOUT timezone info (e.g. "2026-03-01T16:33:00").
+        // Check expiration
+        const expiresAt = parseUTCDate(linkData.expires_at);
+        const now = new Date();
+        console.log("⏰ Raw expires_at from Supabase:", linkData.expires_at);
+        console.log("⏰ Parsed as UTC:", expiresAt.toISOString(), "| Now UTC:", now.toISOString(), "| Remaining ms:", expiresAt - now);
+
+        if (now > expiresAt) {
+          console.warn("⏰ Link expired at:", expiresAt.toLocaleString());
+          showError("This link has expired");
+          return;
+        }
+
+        // Use data from shared_links table (no need to fetch documents table)
+        // The shared_links table already contains:
+        // - file_name
+        // - file_size  
+        // - storage_path
+        // This avoids RLS policy issues!
+
+        console.log("✅ Link is valid and not expired");
+        showIdentityGate(linkData, expiresAt);
+      } catch (error) {
+        console.error("❌ Error verifying link:", error);
+        showError("An error occurred: " + error.message);
+      }
+    }
+
+    function displayDocument(link, expiresAt) {
+      console.log("📋 Displaying document:", link.file_name);
+
+      contentDiv.innerHTML = `
+        <div class="success-message">
+          ✓ Document is ready for secure viewing
+        </div>
+
+        <div class="document-info">
+          <div class="document-name">🔒 Secure Document</div>
+          <div class="document-meta">
+            <span>${formatFileSize(link.file_size)}</span>
+            <span>Views: ${link.access_count + 1}</span>
+          </div>
+        </div>
+
+        <div class="viewer-container" id="viewerContainer">
+          <div class="loading-text">Loading secure preview...</div>
+        </div>
+
+        <div class="viewer-note" id="autoCloseTimer">
+          ⏱ Calculating…  |  View-only mode. Download disabled.
+        </div>
+      `;
+
+      // Inject persistent corner watermark
+      injectWatermark(link);
+
+      // Auto-close exactly when the sender's link expires
+      startAutoCloseTimer(expiresAt);
+
+      void loadDocumentForView(link);
+    }
+
+    // ─── Persistent watermark that survives into any screenshot ──────────────
+    // ─── Persistent corner watermark ──────────────────────────────────
+    function injectWatermark(link) {
+      document.getElementById("secureWatermark")?.remove();
+
+      const sessionToken = Math.random().toString(36).slice(2, 8).toUpperCase();
+      const fileName = "Secure Document";
+
+      const overlay = document.createElement("div");
+      overlay.id = "secureWatermark";
+
+      // 4 lines, each a <span class="wm-text">
+      ["\ud83d\udd12 CONFIDENTIAL", fileName, "", ""].forEach((_, i) => {
+        const span = document.createElement("span");
+        span.className = "wm-text";
+        span.id = `wml${i}`;
+        overlay.appendChild(span);
+      });
+
+      document.body.appendChild(overlay);
+
+      function updateCornerWatermark() {
+        const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+        const vn  = window._viewerName || ("ID: " + sessionToken);
+        const lines = ["\ud83d\udd12 CONFIDENTIAL", fileName, now, vn];
+        lines.forEach((txt, i) => {
+          const el = document.getElementById(`wml${i}`);
+          if (el) el.textContent = txt;
+        });
+      }
+
+      updateCornerWatermark();
+      const interval = setInterval(updateCornerWatermark, 1000);
+
+      // Re-inject if DevTools removes it
+      const wmObserver = new MutationObserver(() => {
+        if (!document.getElementById("secureWatermark")) {
+          wmObserver.disconnect();
+          clearInterval(interval);
+          setTimeout(() => injectWatermark(link), 100);
+        }
+      });
+      wmObserver.observe(document.body, { childList: true, subtree: false });
+    }
+
+    // ── Step 1: Identity Gate — must enter name before document loads ───────────
+    function showIdentityGate(link, expiresAt) {
+      contentDiv.innerHTML = `
+        <div class="identity-gate">
+          <div class="ig-icon">🔐</div>
+          <h2 class="ig-title">Identity Verification Required</h2>
+          <p class="ig-sub">
+            Enter your full name to access this document.<br>
+            <strong>Your name will be permanently watermarked on every page.</strong>
+          </p>
+          <div class="ig-form">
+            <input class="ig-input" id="viewerNameInput" type="text"
+              placeholder="Enter your full name" maxlength="40" autocomplete="name" />
+            <button class="ig-btn" id="igSubmitBtn">View Document →</button>
+            <p class="ig-warn">
+              ⚠️ Any screenshot will show your name and the exact timestamp it was taken.
+              The link expires as set by the document owner.
+            </p>
+          </div>
+        </div>
+      `;
+
+      const input = document.getElementById("viewerNameInput");
+      const btn   = document.getElementById("igSubmitBtn");
+      input.focus();
+
+      function submitIdentity() {
+        const name = input.value.trim();
+        if (!name || name.length < 2) {
+          input.style.borderColor = "#ef4444";
+          input.placeholder = "Please enter your full name (min 2 characters)";
+          input.focus();
+          return;
+        }
+        window._viewerName = name;
+        logDocumentView(link, name);   // fire-and-forget
+        displayDocument(link, expiresAt);
+      }
+
+      btn.onclick = submitIdentity;
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") submitIdentity(); });
+    }
+
+    // ── Step 2: Log view to Supabase (best-effort, never blocks UI) ─────────
+    async function logDocumentView(link, viewerName) {
+      try {
+        // Increment access count
+        await supabase
+          .from("shared_links")
+          .update({ access_count: (link.access_count || 0) + 1 })
+          .eq("link_id", link.link_id);
+
+        // Try to insert into view_logs table if it exists
+        await supabase.from("view_logs").insert({
+          link_id:     link.link_id,
+          file_name:   link.file_name,
+          viewer_name: viewerName,
+          viewed_at:   new Date().toISOString(),
+        });
+        console.log("✅ View logged for:", viewerName);
+      } catch (e) {
+        console.warn("⚠️ View log (non-critical):", e.message);
+      }
+    }
+
+    // ── Auto-close exactly when the sender's link expires ──────────────
+    function startAutoCloseTimer(expiresAt) {
+      function formatRemaining() {
+        const ms = expiresAt.getTime() - Date.now();
+        if (ms <= 0) return null;
+        const totalSecs = Math.floor(ms / 1000);
+        const hrs  = Math.floor(totalSecs / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+        return hrs > 0
+          ? `${hrs}:${mins.toString().padStart(2,"0")}:${secs.toString().padStart(2,"0")}`
+          : `${mins}:${secs.toString().padStart(2,"0")}`;
+      }
+
+      function updateDisplay() {
+        const display = formatRemaining();
+        const el = document.getElementById("autoCloseTimer");
+        if (!el) return;
+        if (display === null) {
+          clearInterval(tick);
+          document.body.innerHTML = `
+            <div style="position:fixed;inset:0;background:#0f172a;display:flex;flex-direction:column;
+              align-items:center;justify-content:center;color:#fff;font-family:sans-serif;z-index:999999;">
+              <div style="font-size:52px;margin-bottom:18px;">🔒</div>
+              <h2 style="margin:0 0 10px;font-size:22px;font-weight:700;">Link Expired</h2>
+              <p style="color:#94a3b8;font-size:14px;margin:4px 0;">This viewing link has expired.</p>
+              <p style="color:#475569;font-size:12px;margin-top:6px;">Request a new link from the document owner.</p>
+            </div>
+          `;
+        } else {
+          el.textContent = `⏱ Link expires in ${display}  |  View-only mode. Download disabled.`;
+        }
+      }
+
+      // Update immediately so there's no 1-second blank/stale display
+      updateDisplay();
+      const tick = setInterval(updateDisplay, 1000);
+    }
+
+    async function loadDocumentForView(link) {
+      try {
+        console.log("👁️ Starting secure view of:", link.file_name);
+        const viewerContainer = document.getElementById("viewerContainer");
+        if (!viewerContainer) {
+          console.error("❌ Viewer container not found in DOM");
+          return;
+        }
+
+        // ⚠️ CRITICAL: Re-validate link expiration before fetching actual file
+        // This prevents expired links from being accessed if the page was left open
+        const now = new Date();
+        const expiresAt = parseUTCDate(link.expires_at);
+        console.log("⏰ Expiration re-check:", { now: now.toISOString(), expiresAt: expiresAt.toISOString(), isExpired: now > expiresAt });
+        
+        if (now > expiresAt) {
+          console.error("❌ Link expired during preview load");
+          showError("This link has expired");
+          return;
+        }
+
+        viewerContainer.innerHTML = `<div class="loading-text">Loading secure preview...</div>`;
+        console.log("📥 Fetching file from storage, path:", link.storage_path);
+
+        const { data, error } = await supabase.storage
+          .from("documents")
+          .download(link.storage_path);
+
+        if (error) {
+          console.error("❌ Storage fetch error:", error);
+          throw error;
+        }
+
+        console.log("✅ File fetched successfully, size:", data.size, "type:", data.type);
+
+        const nextAccessCount = (link.access_count || 0) + 1;
+        const updateResult = await supabase
+          .from("shared_links")
+          .update({
+            access_count: nextAccessCount,
+            last_accessed_at: new Date().toISOString(),
+          })
+          .eq("id", link.id);
+
+        console.log("✅ Access count updated to:", nextAccessCount);
+        link.access_count = nextAccessCount;
+
+        renderDocumentPreview(link, data, viewerContainer);
+
+        console.log("✅ Document rendered in secure view mode");
+      } catch (error) {
+        console.error("❌ View error:", error);
+        showError("Unable to open document: " + error.message);
+      }
+    }
+
+    function renderDocumentPreview(link, blob, container) {
+      try {
+        console.log("🔍 Rendering preview:", { fileName: link.file_name, mimeType: blob.type, blobSize: blob.size });
+
+        // Handle PDF files with PDF.js (no download/print buttons allowed)
+        if (blob.type === "application/pdf" || link.file_name.toLowerCase().endsWith(".pdf")) {
+          console.log("📄 PDF detected, using secure PDF.js viewer (no download options)...");
+          renderSecurePDF(link, blob, container);
+          return;
+        }
+
+        // Handle images — render via canvas → video stream (screenshots show black)
+        if (blob.type.startsWith("image/") || /\.(png|jpg|jpeg|gif|webp)$/i.test(link.file_name)) {
+          console.log("🖼️ Image detected — rendering via secure video stream");
+          try {
+            const imageUrl = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => {
+              const offCanvas = document.createElement("canvas");
+              offCanvas.width = img.naturalWidth;
+              offCanvas.height = img.naturalHeight;
+              offCanvas.style.display = "none";
+              document.body.appendChild(offCanvas);
+              const ctx = offCanvas.getContext("2d");
+              ctx.drawImage(img, 0, 0);
+
+              // Helper: bake watermark tiles into canvas pixels
+              const imgWmToken = Math.random().toString(36).slice(2, 8).toUpperCase();
+              const imgWmFile  = "Secure Document";
+              function stamImageWatermark() {
+                const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+                const viewerLabel = window._viewerName ? "By: " + window._viewerName : "ID: " + imgWmToken;
+                const lines = ["🔒 CONFIDENTIAL", imgWmFile, now, viewerLabel];
+                const w = offCanvas.width, h = offCanvas.height;
+                const fontSize = Math.max(11, Math.min(14, w * 0.018));
+                ctx.save();
+                ctx.font = `bold ${fontSize}px monospace`;
+                ctx.textAlign = "right";
+                ctx.textBaseline = "bottom";
+                const lineH = fontSize * 1.55;
+                const padX = 12, padY = 12;
+                const maxW = lines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0);
+                const boxH = lines.length * lineH + padY;
+                const boxW = maxW + padX * 2;
+                ctx.fillStyle = "rgba(255,255,255,0.72)";
+                const rx = w - boxW - 8, ry = h - boxH - 8;
+                if (ctx.roundRect) {
+                  ctx.beginPath(); ctx.roundRect(rx, ry, boxW + 8, boxH + 8, 6); ctx.fill();
+                } else {
+                  ctx.fillRect(rx, ry, boxW + 8, boxH + 8);
+                }
+                ctx.fillStyle = "rgba(160, 0, 0, 0.88)";
+                lines.forEach((line, i) => {
+                  ctx.fillText(line, w - padX, h - padY - (lines.length - 1 - i) * lineH);
+                });
+                ctx.restore();
+              }
+
+              // Initial stamp (baked into canvas at load)
+              stamImageWatermark();
+              URL.revokeObjectURL(imageUrl);
+
+              // Re-stamp every second — ticking timestamp in every frame
+              setInterval(() => {
+                // Redraw base image then re-stamp watermark
+                ctx.drawImage(img, 0, 0);
+                stamImageWatermark();
+              }, 1000);
+
+              const stream = offCanvas.captureStream(30);
+              container.innerHTML = `
+                <div class="viewer-wrapper" id="viewerWrapper" style="display:flex;flex-direction:column;height:100%;width:100%;">
+                  <div style="flex:1;overflow:hidden;background:#1e1e1e;display:flex;align-items:center;justify-content:center;">
+                    <video
+                      id="secureVideoViewer"
+                      autoplay muted playsinline
+                      disablePictureInPicture disableRemotePlayback
+                      oncontextmenu="return false;" draggable="false"
+                      controlsList="nodownload nofullscreen noremoteplayback"
+                    ></video>
+                  </div>
+                  <div class="pdf-controls">
+                    <span class="pdf-page-info">Secure Image Viewer</span>
+                    <button class="pdf-btn pdf-btn-fullscreen" id="fullscreenBtn">⛶ Fullscreen</button>
+                  </div>
+                </div>
+              `;
+              const video = document.getElementById("secureVideoViewer");
+              video.srcObject = stream;
+              video.style.maxWidth = "100%";
+              video.style.maxHeight = "100%";
+              video.play();
+
+              video.addEventListener("enterpictureinpicture", (e) => {
+                e.preventDefault();
+                document.exitPictureInPicture?.();
+              });
+
+              document.getElementById("fullscreenBtn").onclick = () => {
+                const wrapper = document.getElementById("viewerWrapper");
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                  (wrapper.requestFullscreen || wrapper.webkitRequestFullscreen).call(wrapper);
+                  document.getElementById("fullscreenBtn").textContent = "✕ Exit Fullscreen";
+                } else {
+                  (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                  document.getElementById("fullscreenBtn").textContent = "⛶ Fullscreen";
+                }
+              };
+            };
+            img.onerror = () => {
+              container.innerHTML = `<div class="loading-text">Image viewer error</div>`;
+            };
+            img.src = imageUrl;
+          } catch (err) {
+            console.error("❌ Image error:", err);
+            container.innerHTML = `<div class="loading-text">Image viewer error</div>`;
+          }
+          return;
+        }
+
+        // Handle text files
+        if (blob.type.startsWith("text/") || blob.type === "application/json" || /\.(txt|json|csv|md)$/i.test(link.file_name)) {
+          console.log("📝 Text file detected");
+          blob.text()
+            .then((text) => {
+              console.log("✅ Text loaded, length:", text.length);
+              container.innerHTML = `<pre class="viewer-text" oncontextmenu="return false">${escapeHtml(text.slice(0, 120000))}</pre>`;
+            })
+            .catch((err) => {
+              console.error("❌ Text read error:", err);
+              container.innerHTML = `<div class="loading-text">Error reading text file</div>`;
+            });
+          return;
+        }
+
+        // Fallback: raw file info
+        console.warn("⚠️ Unknown file type:", blob.type);
+        container.innerHTML = `
+          <div class="loading-text">
+            📦 Preview not available<br>
+            Type: ${escapeHtml(blob.type)}<br>
+            Size: ${formatFileSize(blob.size)}<br>
+            <small>Ask sender to share PDF, image, or text file</small>
+          </div>
+        `;
+      } catch (error) {
+        console.error("❌ Render fatal error:", error);
+        container.innerHTML = `<div class="loading-text">❌ ${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    async function renderSecurePDF(link, blob, container) {
+      try {
+        const arrayBuffer = await blob.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        console.log(`✅ PDF loaded, total pages: ${pdf.numPages}`);
+
+        let currentPage = 1;
+
+        // Hidden offscreen canvas — PDF renders here, never shown directly
+        const offscreenCanvas = document.createElement("canvas");
+        offscreenCanvas.style.display = "none";
+        document.body.appendChild(offscreenCanvas);
+
+        // Block any attempt to extract canvas data
+        offscreenCanvas.toDataURL = () => { showAlert("🔒 Exporting is not allowed"); return ""; };
+        offscreenCanvas.toBlob = () => Promise.reject(new Error("Blocked"));
+
+        // ★ KEY TECHNIQUE: stream canvas into a <video> element
+        // Screenshots and screen recordings of <video> content captured
+        // as BLACK on macOS ScreenCaptureKit, iOS, Android, and most recording tools.
+        const stream = offscreenCanvas.captureStream(30);
+
+        container.innerHTML = `
+          <div class="viewer-wrapper" id="viewerWrapper" style="display:flex;flex-direction:column;height:100%;width:100%;">
+            <div style="flex:1;overflow:hidden;background:#1e1e1e;display:flex;align-items:center;justify-content:center;">
+              <video
+                id="secureVideoViewer"
+                autoplay
+                muted
+                playsinline
+                disablePictureInPicture
+                disableRemotePlayback
+                oncontextmenu="return false;"
+                draggable="false"
+                controlsList="nodownload nofullscreen noremoteplayback"
+              ></video>
+            </div>
+            <div class="pdf-controls">
+              <button class="pdf-btn" id="prevBtn" disabled>← Back</button>
+              <span class="pdf-page-info"><span id="pageInfo">Page 1 of ${pdf.numPages}</span></span>
+              <button class="pdf-btn" id="nextBtn" ${pdf.numPages === 1 ? 'disabled' : ''}>Next →</button>
+              <button class="pdf-btn pdf-btn-fullscreen" id="fullscreenBtn">⛶ Fullscreen</button>
+            </div>
+          </div>
+        `;
+
+        // Attach canvas stream to video
+        const video = document.getElementById("secureVideoViewer");
+        video.srcObject = stream;
+        video.play();
+
+        // Block picture-in-picture
+        video.addEventListener("enterpictureinpicture", (e) => {
+          e.preventDefault();
+          document.exitPictureInPicture?.();
+          showAlert("🔒 Picture-in-Picture is disabled");
+        });
+
+        // Block video element context menu & native controls
+        video.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        // Session watermark identity for this viewer
+        const wmToken = Math.random().toString(36).slice(2, 8).toUpperCase();
+        const wmFile  = "Secure Document";
+        let   wmCtx   = null;   // active canvas context
+        let   wmW = 0, wmH = 0; // active canvas dimensions
+
+        // Draw a corner watermark baked INTO the canvas pixels (bottom-right)
+        function drawWatermarkOnCanvas(ctx, w, h) {
+          const now  = new Date().toISOString().slice(0, 19).replace("T", " ");
+          const viewerLabel = window._viewerName ? "By: " + window._viewerName : "ID: " + wmToken;
+          const lines = ["🔒 CONFIDENTIAL", wmFile, now, viewerLabel];
+          const fontSize = Math.max(11, Math.min(14, w * 0.018));
+          ctx.save();
+          ctx.font = `bold ${fontSize}px monospace`;
+          ctx.textAlign = "right";
+          ctx.textBaseline = "bottom";
+          const lineH = fontSize * 1.55;
+          const padX  = 12, padY = 12;
+          // Semi-transparent background box
+          const maxW = lines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0);
+          const boxH = lines.length * lineH + padY;
+          const boxW = maxW + padX * 2;
+          ctx.fillStyle = "rgba(255,255,255,0.72)";
+          const rx = w - boxW - 8, ry = h - boxH - 8;
+          if (ctx.roundRect) {
+            ctx.beginPath(); ctx.roundRect(rx, ry, boxW + 8, boxH + 8, 6); ctx.fill();
+          } else {
+            ctx.fillRect(rx, ry, boxW + 8, boxH + 8);
+          }
+          // Draw text lines
+          ctx.fillStyle = "rgba(160, 0, 0, 0.88)";
+          lines.forEach((line, i) => {
+            ctx.fillText(line, w - padX, h - padY - (lines.length - 1 - i) * lineH);
+          });
+          ctx.restore();
+        }
+
+        // Re-stamp watermark every second (timestamp ticks live)
+        const wmInterval = setInterval(() => {
+          if (wmCtx && wmW && wmH) {
+            // Re-render only the watermark layer (paint over old stamp then re-draw)
+            // We don't re-render the full PDF page — just overdraw the watermark
+            drawWatermarkOnCanvas(wmCtx, wmW, wmH);
+          }
+        }, 1000);
+
+        // Render a PDF page to the offscreen canvas (streams into video)
+        async function renderPage(pageNum) {
+          try {
+            const page = await pdf.getPage(pageNum);
+            const containerWidth = container.clientWidth || 500;
+            const viewport0 = page.getViewport({ scale: 1 });
+            const scale = (containerWidth / viewport0.width) * 1.5;
+            const viewport = page.getViewport({ scale });
+
+            offscreenCanvas.width = viewport.width;
+            offscreenCanvas.height = viewport.height;
+
+            const ctx = offscreenCanvas.getContext("2d");
+            await page.render({ canvasContext: ctx, viewport }).promise;
+
+            // ★ BAKE watermark into canvas pixels — now part of the video stream
+            drawWatermarkOnCanvas(ctx, viewport.width, viewport.height);
+
+            // Store reference so the tick interval can keep re-stamping
+            wmCtx = ctx;
+            wmW   = viewport.width;
+            wmH   = viewport.height;
+
+            // Resize video to match aspect ratio
+            video.style.maxWidth = "100%";
+            video.style.maxHeight = "100%";
+
+            document.getElementById("pageInfo").textContent = `Page ${pageNum} of ${pdf.numPages}`;
+            document.getElementById("prevBtn").disabled = pageNum === 1;
+            document.getElementById("nextBtn").disabled = pageNum === pdf.numPages;
+            currentPage = pageNum;
+            console.log(`✅ Rendered page ${pageNum} with baked watermark via secure video stream`);
+          } catch (err) {
+            console.error("❌ Page render error:", err);
+          }
+        }
+
+        document.getElementById("prevBtn").onclick = () => {
+          if (currentPage > 1) renderPage(currentPage - 1);
+        };
+        document.getElementById("nextBtn").onclick = () => {
+          if (currentPage < pdf.numPages) renderPage(currentPage + 1);
+        };
+
+        // Fullscreen toggle
+        document.getElementById("fullscreenBtn").onclick = () => {
+          const wrapper = document.getElementById("viewerWrapper");
+          if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            (wrapper.requestFullscreen || wrapper.webkitRequestFullscreen).call(wrapper)
+              .catch((e) => console.error("Fullscreen error:", e));
+            document.getElementById("fullscreenBtn").textContent = "✕ Exit Fullscreen";
+          } else {
+            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+            document.getElementById("fullscreenBtn").textContent = "⛶ Fullscreen";
+          }
+        };
+
+        document.addEventListener("fullscreenchange", () => {
+          const btn = document.getElementById("fullscreenBtn");
+          if (btn) btn.textContent = document.fullscreenElement ? "✕ Exit Fullscreen" : "⛶ Fullscreen";
+        });
+
+        await renderPage(1);
+
+      } catch (error) {
+        console.error("❌ PDF.js error:", error);
+        container.innerHTML = `<div class="loading-text">❌ PDF Error: ${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function getMimeTypeFromName(fileName = "") {
+      const lower = fileName.toLowerCase();
+      if (lower.endsWith(".pdf")) return "application/pdf";
+      if (lower.endsWith(".png")) return "image/png";
+      if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+      if (lower.endsWith(".gif")) return "image/gif";
+      if (lower.endsWith(".webp")) return "image/webp";
+      if (lower.endsWith(".txt")) return "text/plain";
+      if (lower.endsWith(".json")) return "application/json";
+      return "application/octet-stream";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + " B";
+      if (bytes < 1024 * 1024)
+        return (bytes / 1024).toFixed(1) + " KB";
+      return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    }
+
+    function showError(message) {
+      contentDiv.innerHTML = `
+        <div class="error-message">
+          ❌ ${message}
+        </div>
+      `;
+    }
+
+    // Load document
+    verifyAndLoadDocument();
+  </script>
+</body>
+</html>

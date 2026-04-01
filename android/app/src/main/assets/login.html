@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureVault - Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    body {
+      font-family: '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      padding: 56px 48px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .branding {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .logo:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .logo svg {
+      width: 30px;
+      height: 30px;
+      fill: white;
+    }
+
+    .branding-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .branding-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    .branding-tagline {
+      font-size: 12px;
+      color: #6b7280;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 12px;
+      text-align: center;
+      letter-spacing: -0.6px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 36px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 8px;
+      letter-spacing: -0.2px;
+      text-transform: capitalize;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 20px;
+      height: 20px;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .input-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 14px 12px 44px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: #f9fafb;
+      color: #0f172a;
+    }
+
+    input[type="email"]::placeholder,
+    input[type="password"]::placeholder {
+      color: #9ca3af;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #3b82f6;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+    }
+
+    input[type="email"]:hover,
+    input[type="password"]:hover {
+      border-color: #c4cfe9;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 36px;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: -0.2px;
+    }
+
+    .btn-login {
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      color: white;
+      border: none;
+      grid-column: 1 / 3;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-login:active {
+      transform: translateY(-1px);
+    }
+
+    .btn-signup {
+      background: white;
+      color: #3b82f6;
+      border: 1.5px solid #dbeafe;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+    }
+
+    .btn-signup:hover {
+      background: #f0f9ff;
+      border-color: #bfdbfe;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
+    }
+
+    .helper-text {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 6px;
+      font-weight: 400;
+    }
+
+    .error-message {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      color: #991b1b;
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid #fecaca;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .loading-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      position: absolute;
+      right: 14px;
+    }
+
+    .btn-login.loading .loading-spinner {
+      display: block;
+    }
+
+    .btn-login.loading {
+      opacity: 0.8;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      opacity: 0;
+      animation: fadeIn 0.6s ease 0.25s both;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+
+    .divider-text {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .social-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeIn 0.6s ease 0.3s both;
+    }
+
+    .social-btn {
+      background: white;
+      border: 2px solid #e2e8f0;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      transition: all 0.3s ease;
+    }
+
+    .social-btn:hover {
+      border-color: #cbd5e0;
+      background: #f8fafc;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .social-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .footer-text {
+      text-align: center;
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 28px;
+    }
+
+    .footer-text a {
+      color: #3b82f6;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    .footer-text a:hover {
+      color: #1e40af;
+    }
+
+    /* Features Section */
+    .features-section {
+      width: 100%;
+      max-width: 1200px;
+      margin: 80px auto 0;
+      padding: 80px 40px;
+    }
+
+    .features-title {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .features-title h2 {
+      font-size: 36px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .features-title p {
+      font-size: 16px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .feature-card {
+      background: white;
+      border-radius: 14px;
+      padding: 32px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(59, 130, 246, 0.1);
+      border-color: #3b82f6;
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #dbeafe 0%, #f3e8ff 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: #3b82f6;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .feature-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 10px;
+      letter-spacing: -0.2px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 32px 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .button-group {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-login {
+        grid-column: auto;
+      }
+
+      .social-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .features-title h2 {
+        font-size: 22px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <!-- Branding -->
+      <div class="branding">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="white"/>
+          </svg>
+        </div>
+        <div class="branding-text">
+          <div class="branding-name">SecureVault</div>
+          <div class="branding-tagline">Document Management</div>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <h1>Welcome Back</h1>
+      <p class="subtitle">Sign in to access your secure documents</p>
+
+      <!-- Error Message -->
+      <div class="error-message" id="errorMessage"></div>
+
+      <!-- Login Form -->
+      <form id="loginForm">
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <div class="input-wrapper">
+            <div class="input-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <path d="M2 6l10 7 10-7"/>
+              </svg>
+            </div>
+            <input
+              type="email"
+              id="email"
+              placeholder="your@email.com"
+              required
+              autocomplete="email"
+            >
+          </div>
+          <p class="helper-text">We'll never share your email</p>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <div class="input-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+          <p class="helper-text">Must be at least 6 characters</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+          <button type="button" class="btn-signup" id="signupBtn">Create Account</button>
+          <button type="submit" class="btn-login" id="loginBtn">
+            Sign In
+            <div class="loading-spinner"></div>
+          </button>
+        </div>
+      </form>
+
+      <!-- Footer -->
+      <div class="footer-text">
+        <a href="#forgot-password">Forgot your password?</a>
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="features-section">
+      <div class="features-title">
+        <h2>What You Get</h2>
+        <p>Simple yet powerful document management features</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <h3>Secure Upload & Storage</h3>
+          <p>Easily upload your documents and store them securely in the cloud.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3>Easy Document Sharing</h3>
+          <p>Generate shareable links and send documents to anyone securely.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="19" x2="12" y2="5"/>
+              <line x1="9" y1="16" x2="15" y2="16"/>
+            </svg>
+          </div>
+          <h3>View & Download</h3>
+          <p>Preview documents directly and download them whenever you need.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+          <h3>User Authentication</h3>
+          <p>Secure email and password authentication to protect your account.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+          </div>
+          <h3>Quick Operations</h3>
+          <p>Manage your documents with simple operations: upload, view, share, and delete.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M9 1v2H5v4H3V1h6zm6 0v6h-2V3h-4V1h6zm8 8v2h-2v4h-2v-4h-2v-2h6zM9 9v2H5v4H3v-4H1v-2h8zm8 8v2h-2v4h-2v-4h-2v-2h6zM1 17v2h2v4h2v-4h2v-2H1z"/>
+            </svg>
+          </div>
+          <h3>Fast & Reliable</h3>
+          <p>Built on Supabase for reliable, fast, and scalable document management.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from "./js/supabase.js";
+
+    const loginForm = document.getElementById("loginForm");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const loginBtn = document.getElementById("loginBtn");
+    const signupBtn = document.getElementById("signupBtn");
+    const errorMessage = document.getElementById("errorMessage");
+
+    // Check if user is already logged in
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session && event === "SIGNED_IN") {
+        window.location.href = "dashboard.html";
+      }
+    });
+
+    // Initial check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        window.location.href = "dashboard.html";
+      }
+    });
+
+    // Handle login form submission
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        showError("Please fill in all fields");
+        return;
+      }
+
+      if (password.length < 6) {
+        showError("Password must be at least 6 characters");
+        return;
+      }
+
+      // Show loading state
+      loginBtn.classList.add("loading");
+      loginBtn.disabled = true;
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          showError(error.message || "Failed to sign in. Check your email and password.");
+        } else if (data.session) {
+          // Success - redirect handled by auth state change
+          showError(""); // Clear error
+        }
+      } catch (err) {
+        showError("An unexpected error occurred. Please try again.");
+      } finally {
+        loginBtn.classList.remove("loading");
+        loginBtn.disabled = false;
+      }
+    });
+
+    // Handle signup button
+    signupBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        showError("Please fill in all fields");
+        return;
+      }
+
+      if (password.length < 6) {
+        showError("Password must be at least 6 characters");
+        return;
+      }
+
+      // Show loading state
+      signupBtn.style.opacity = "0.8";
+      signupBtn.disabled = true;
+
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard.html`,
+          },
+        });
+
+        if (error) {
+          showError(error.message || "Failed to create account. Try again.");
+        } else if (data.user) {
+          showError(""); // Clear error
+          showSuccess("Account created! Check your email to verify before signing in.");
+          // Reset form
+          loginForm.reset();
+        }
+      } catch (err) {
+        showError("An unexpected error occurred. Please try again.");
+      } finally {
+        signupBtn.style.opacity = "1";
+        signupBtn.disabled = false;
+      }
+    });
+
+    function showError(message) {
+      if (message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.add("show");
+      } else {
+        errorMessage.classList.remove("show");
+      }
+    }
+
+    function showSuccess(message) {
+      errorMessage.style.background = "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)";
+      errorMessage.style.color = "#166534";
+      errorMessage.style.borderColor = "#a7f3d0";
+      errorMessage.textContent = message;
+      errorMessage.classList.add("show");
+    }
+
+    // Clear error on input
+    emailInput.addEventListener("input", () => {
+      if (errorMessage.classList.contains("show")) {
+        errorMessage.classList.remove("show");
+      }
+    });
+
+    passwordInput.addEventListener("input", () => {
+      if (errorMessage.classList.contains("show")) {
+        errorMessage.classList.remove("show");
+      }
+    });
+  </script>
+</body>
+</html>

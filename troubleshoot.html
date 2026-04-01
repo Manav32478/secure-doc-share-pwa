@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureVault - Help & Setup Guide</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      min-height: 100vh;
+      padding: 24px;
+      color: #1a202c;
+    }
+
+    /* Navigation Header */
+    .header {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: slideInLeft 0.6s ease;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #1a202c;
+    }
+
+    .header-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .header-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .header-nav {
+      display: flex;
+      gap: 24px;
+    }
+
+    .header-nav a {
+      color: #64748b;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .header-nav a:hover {
+      color: #3b82f6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: #1a202c;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+      animation: fadeIn 0.8s ease;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: #64748b;
+      margin-bottom: 32px;
+      font-weight: 500;
+      animation: fadeIn 0.8s ease 0.1s both;
+    }
+
+    .section {
+      background: white;
+      margin-bottom: 32px;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      animation: fadeIn 0.8s ease 0.2s both;
+    }
+
+    .section-urgent {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+      border: 2px solid #3b82f6;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .section-success {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.08) 100%);
+      border: 2px solid #22c55e;
+      border-left: 4px solid #22c55e;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: -0.3px;
+    }
+
+    .section-title-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .step {
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border-left: 3px solid #3b82f6;
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: white;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 14px;
+      margin-right: 12px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .step > strong {
+      color: #1a202c;
+      font-weight: 700;
+    }
+
+    code {
+      background: #f1f5f9;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      color: #3b82f6;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    .code-block {
+      background: #1a202c;
+      color: #f0f9ff;
+      padding: 16px;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 16px 0;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      border: 1px solid #334155;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      letter-spacing: -0.2px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #3b82f6;
+      border: 2px solid #3b82f6;
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: #eff6ff;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+
+    .btn-success:hover {
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+    }
+
+    .warning-box {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(249, 115, 22, 0.08) 100%);
+      border: 2px solid #f97316;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 20px 0;
+      color: #d97706;
+      font-weight: 500;
+    }
+
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+
+    .checklist li {
+      padding: 12px;
+      padding-left: 40px;
+      position: relative;
+      margin-bottom: 8px;
+      background: #f8fafc;
+      border-radius: 8px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .checklist li:before {
+      content: "✓";
+      position: absolute;
+      left: 12px;
+      font-size: 18px;
+      color: #22c55e;
+      font-weight: 700;
+    }
+
+    ol {
+      padding-left: 24px;
+      color: #64748b;
+      line-height: 1.8;
+    }
+
+    ol li {
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    a {
+      color: #3b82f6;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    a:hover {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+
+      .header-nav {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .section {
+        padding: 20px;
+      }
+
+      .section-title {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header Navigation -->
+  <div class="header">
+    <a href="/" class="header-brand">
+      <div class="header-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="white"/>
+        </svg>
+      </div>
+      <span class="header-title">SecureVault</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="login.html">Sign In</a>
+    </nav>
+  </div>
+
+  <div class="container">
+    <h1>Help & Setup Guide</h1>
+    <p class="subtitle">Everything you need to get SecureVault working perfectly</p>
+
+    <!-- GETTING STARTED SECTION -->
+    <div class="section section-urgent">
+      <div class="section-title">
+        <div class="section-title-icon">🚀</div>
+        Getting Started with SecureVault
+      </div>
+      <p style="color: #64748b; margin-bottom: 20px; font-weight: 500;">
+        To fully activate all features and ensure documents display correctly, follow these setup steps:
+      </p>
+
+      <div class="step">
+        <span class="step-number">1</span>
+        <strong>Open Firestore Rules</strong>
+        <br>
+        <p style="color: #64748b; font-size: 14px; margin: 8px 0;">Navigate to the Firebase Console and access the Firestore rules editor</p>
+        <a href="https://console.firebase.google.com/project/doc-share-55636/firestore/rules" target="_blank" class="btn" style="margin-top: 8px;">
+          Open Firestore Rules
+        </a>
+      </div>
+
+      <div class="step">
+        <span class="step-number">2</span>
+        <strong>Replace Firestore Rules</strong>
+        <br>
+        <p style="color: #64748b; font-size: 14px; margin: 8px 0;">Delete all existing rules and paste the following configuration:</p>
+        <div class="code-block">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">3</span>
+        <strong>Publish Firestore Rules</strong>
+        <br>
+        <p style="color: #64748b; font-size: 14px; margin: 8px 0;">Click the <strong>Publish</strong> button at the top and wait for the success message</p>
+      </div>
+
+      <div class="step">
+        <span class="step-number">4</span>
+        <strong>Update Storage Rules</strong>
+        <br>
+        <p style="color: #64748b; font-size: 14px; margin: 8px 0;">Navigate to Storage rules and apply the following configuration:</p>
+        <a href="https://console.firebase.google.com/project/doc-share-55636/storage/rules" target="_blank" class="btn" style="margin-top: 8px;">
+          Open Storage Rules
+        </a>
+        <div class="code-block" style="margin-top: 12px;">rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+      allow write: if request.resource.size < 50 * 1024 * 1024;
+    }
+  }
+}</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">5</span>
+        <strong>Publish Storage Rules</strong>
+        <br>
+        <p style="color: #64748b; font-size: 14px; margin: 8px 0;">Click <strong>Publish</strong> and wait for confirmation</p>
+      </div>
+
+      <div class="step">
+        <span class="step-number">6</span>
+        <strong>Verify Setup Complete</strong>
+        <br>
+        <p style="color: #64748b; font-size: 14px; margin: 8px 0;">Return to your dashboard and refresh the page</p>
+        <a href="dashboard.html" class="btn btn-success" style="margin-top: 8px;">
+          Return to Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- VERIFICATION CHECKLIST -->
+    <div class="section">
+      <div class="section-title">
+        <div class="section-title-icon">✅</div>
+        Verification Checklist
+      </div>
+      <p style="color: #64748b; margin-bottom: 16px; font-weight: 500;">After completing the setup above, verify these items are working:</p>
+      <ul class="checklist">
+        <li>Firebase Console shows "Rules published successfully"</li>
+        <li>Dashboard displays all previously uploaded documents</li>
+        <li>Can upload new documents and see them immediately</li>
+        <li>Can download documents using the download button</li>
+        <li>Can generate shareable links with expiration dates</li>
+        <li>Browser console shows no "permission denied" errors</li>
+      </ul>
+    </div>
+
+    <!-- ADDITIONAL SETUP CHECKS -->
+    <div class="section">
+      <div class="section-title">
+        <div class="section-title-icon">🔧</div>
+        Additional Setup Verification
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <strong style="color: #1a202c; display: block; margin-bottom: 12px;">Check 1: Firestore Database Created</strong>
+        <ol>
+          <li>Go to <a href="https://console.firebase.google.com/project/doc-share-55636/firestore" target="_blank">Firestore Database</a></li>
+          <li>If you see "Get started", click it</li>
+          <li>Select "Start in <strong>test mode</strong>"</li>
+          <li>Choose location (us-central or nearest to you)</li>
+          <li>Click Enable</li>
+        </ol>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <strong style="color: #1a202c; display: block; margin-bottom: 12px;">Check 2: Storage Enabled</strong>
+        <ol>
+          <li>Go to <a href="https://console.firebase.google.com/project/doc-share-55636/storage" target="_blank">Cloud Storage</a></li>
+          <li>If you see "Get started", click it</li>
+          <li>Select "Start in <strong>test mode</strong>"</li>
+          <li>Use the same location as your Firestore database</li>
+          <li>Click Done</li>
+        </ol>
+      </div>
+
+      <div>
+        <strong style="color: #1a202c; display: block; margin-bottom: 12px;">Check 3: Authentication Enabled</strong>
+        <ol>
+          <li>Go to <a href="https://console.firebase.google.com/project/doc-share-55636/authentication/providers" target="_blank">Authentication</a></li>
+          <li>If you see "Get started", click it</li>
+          <li>Go to "Sign-in method" tab</li>
+          <li>Enable "<strong>Email/Password</strong>"</li>
+          <li>Click Save</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- DEBUGGING SECTION -->
+    <div class="section">
+      <div class="section-title">
+        <div class="section-title-icon">🐛</div>
+        Debugging Tips
+      </div>
+      <p style="color: #64748b; margin-bottom: 16px; font-weight: 500;">Press <strong>F12</strong> → <strong>Console</strong> tab to check for these messages:</p>
+      
+      <div style="margin: 20px 0;">
+        <strong style="color: #22c55e; display: block; margin-bottom: 8px;">✓ Good Messages (Everything Working):</strong>
+        <div class="code-block" style="background: #f0fdf4; color: #15803d; border: 1px solid #ccfbf1;">Loading documents for user: abc123xyz
+Documents found: 1
+Document data: {fileName: "file.pdf", ...}</div>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <strong style="color: #dc2626; display: block; margin-bottom: 8px;">✗ Error Messages (Needs Attention):</strong>
+        <div class="code-block" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;">FirebaseError: Missing or insufficient permissions
+FirebaseError: permission-denied</div>
+        <p style="color: #991b1b; margin-top: 12px; font-weight: 500;">If you see these errors, return to Steps 1-5 above and verify the rules were updated correctly.</p>
+      </div>
+    </div>
+
+    <!-- FEATURES SECTION -->
+    <div class="section section-success">
+      <div class="section-title">
+        <div class="section-title-icon">🎉</div>
+        After Setup: Using SecureVault Features
+      </div>
+      <p style="color: #64748b; margin-bottom: 20px; font-weight: 500;">Once documents display properly, here are the main features available:</p>
+
+      <div style="margin-bottom: 24px;">
+        <strong style="color: #1a202c; display: block; margin-bottom: 12px;">📤 Upload Documents</strong>
+        <ol>
+          <li>Go to the Dashboard</li>
+          <li>Click the "Upload" area or drag files</li>
+          <li>Select one or multiple documents (PDF, Word, Images, etc.)</li>
+          <li>Files are automatically encrypted and stored securely</li>
+        </ol>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <strong style="color: #1a202c; display: block; margin-bottom: 12px;">📧 Email Sharing</strong>
+        <ol>
+          <li>Find any document in your dashboard</li>
+          <li>Click the Share button</li>
+          <li>Enter recipient's email address</li>
+          <li>Set an expiration date/time</li>
+          <li>Click "Share" - recipient gets email notification</li>
+          <li>Access automatically expires at the set time</li>
+        </ol>
+      </div>
+
+      <div>
+        <strong style="color: #1a202c; display: block; margin-bottom: 12px;">🔗 Generate Shareable Links</strong>
+        <ol>
+          <li>Scroll to "Generate Shareable Link" section</li>
+          <li>Enter hours until expiration (e.g., 24 hours)</li>
+          <li>Click "Generate Link"</li>
+          <li>Copy the generated link and share it</li>
+          <li>Anyone with the link can download (no login needed)</li>
+          <li>Link automatically expires after the time period</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SECURITY NOTE -->
+    <div class="warning-box">
+      <strong>🔒 Security Information:</strong> The rules above are development-mode rules that allow authenticated users to read/write documents. For production deployments, see <code>firestore.rules</code> and <code>storage.rules</code> files for more restrictive rules. Deploy using Firebase CLI: <code>firebase deploy --only firestore:rules,storage:rules</code>
+    </div>
+
+    <!-- BACK LINK -->
+    <div class="back-link">
+      <a href="dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+      <br><br>
+      <p style="color: #94a3b8; font-size: 14px;">For detailed technical documentation, see <code>QUICK_FIX.md</code> and <code>README.md</code> in the project folder</p>
+    </div>
+  </div>
+</body>
+</html>
